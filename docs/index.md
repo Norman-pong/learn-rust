@@ -47,13 +47,12 @@ graph LR
 
 | 日期 | 文档 | 状态 | 备注 |
 |---|---|---|---|
-| 2026-07-02 | [learn-rust-notebook](./prd/2026-07-02-learn-rust-notebook.md) | 草稿 | Norman 个人 Rust 笔记本 |
+| 2026-07-02 | [learn-rust-notebook](./prd/2026-07-02-learn-rust-notebook.md) | 已完成 | Norman 个人 Rust 笔记本 |
 
 ## Phase（阶段任务）
 
 | 日期 | 文档 | 状态 | 对应 PRD |
-|---|---|---|---|
-| 2026-07-02 | [v1-foundation](./phase/2026-07-02-v1-foundation.md) | 草稿 | learn-rust-notebook |
+| 2026-07-02 | [v1-foundation](./phase/2026-07-02-v1-foundation.md) | 已完成 | learn-rust-notebook |
 
 ## Architecture（架构设计）
 

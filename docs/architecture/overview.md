@@ -1,6 +1,6 @@
 # Architecture · learn-rust 仓库设计
 
-> 状态：草稿 · 日期：2026-07-02
+> 状态：已完成 · 日期：2026-07-02
 >
 > **设计依据**：调研与目录设计已归档至 [`docs/reference/sources.md`](../reference/sources.md)
 > **上游 PRD**：[learn-rust-notebook](../prd/2026-07-02-learn-rust-notebook.md)（功能需求 → 架构实现）

@@ -1,6 +1,6 @@
 # PRD · Norman's Rust 笔记本
 
-> 状态：草稿 · 版本：v1.0 · 作者：Norman · 日期：2026-07-02
+> 状态：已完成 · 版本：v1.0 · 作者：Norman · 日期：2026-07-02
 >
 > **设计依据**：调研与目录设计已归档至 [`docs/reference/sources.md`](../reference/sources.md)
 > **下游文档**：[Architecture](../architecture/overview.md)（架构实现）· [Phase](../phase/2026-07-02-v1-foundation.md)（执行计划）
