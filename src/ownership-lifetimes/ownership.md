@@ -18,7 +18,7 @@
 
 ### Move 语义
 
-```rust
+```rust,should-compile
 fn main() {
     let s1 = String::from("hello");
     let s2 = s1; // Move：s1 的所有权转移到 s2
@@ -54,7 +54,7 @@ function takeOwnership(s: string) {
 
 ### Clone 显式深拷贝
 
-```rust
+```rust,should-compile
 fn main() {
     let s1 = String::from("hello");
     let s2 = s1.clone(); // 深拷贝，s1 和 s2 各自拥有独立堆数据
@@ -74,7 +74,7 @@ function main() {
 
 ### Copy 类型
 
-```rust
+```rust,should-compile
 #[derive(Debug, Copy, Clone)]
 struct Point {
     x: i32,
@@ -113,7 +113,7 @@ function main() {
 
 ### 所有权规则
 
-```rust
+```rust,should-compile
 fn main() {
     // 规则 1：每个值有且只有一个所有者
     let s = String::from("owner");

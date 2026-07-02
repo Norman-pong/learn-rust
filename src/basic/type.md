@@ -19,7 +19,7 @@
 
 ### 字符串类型：`&str` vs `String`
 
-```rust
+```rust,should-compile
 fn main() {
     let s1: &str = "hello";           // 字符串字面量，静态分配，借用
     let mut s2 = String::from("hello"); // 堆上拥有的字符串
@@ -52,7 +52,7 @@ function main() {
 
 ### 数字类型
 
-```rust
+```rust,should-compile
 fn main() {
     let a: i32 = -42;      // 32 位有符号整数
     let b: u64 = 42;       // 64 位无符号整数
@@ -82,7 +82,7 @@ function main() {
 
 ### 结构体与枚举 + derive
 
-```rust
+```rust,should-compile
 #[derive(Debug, Clone, PartialEq)]
 struct User {
     id: u64,
@@ -132,7 +132,7 @@ function main() {
 
 ### HashMap
 
-```rust
+```rust,should-compile
 use std::collections::HashMap;
 
 fn main() {

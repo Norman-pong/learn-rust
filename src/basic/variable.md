@@ -19,7 +19,7 @@
 
 ### 默认不可变 vs 可变
 
-```rust
+```rust,should-compile
 fn main() {
     let x = 5;
     // x = 6; // ❌ error: cannot assign twice to immutable variable
@@ -45,7 +45,7 @@ user.name = "Bob"; // ✅ TypeScript 不会阻止
 
 ### 常量与编译期计算
 
-```rust
+```rust,should-compile
 const MAX_USERS: u32 = 1000;
 const PI: f64 = 3.14159;
 // const 必须可编译期求值，不能是运行时计算结果
@@ -66,7 +66,7 @@ console.log(MAX_USERS);
 
 ### Shadowing（遮蔽）
 
-```rust
+```rust,should-compile
 fn main() {
     let x = 5;
     let x = x + 1; // 同名新绑定，类型可以不同
@@ -94,7 +94,7 @@ function main() {
 
 ### 解构赋值
 
-```rust
+```rust,should-compile
 fn main() {
     let (a, b, c) = (1, 2.0, "hello");
 
