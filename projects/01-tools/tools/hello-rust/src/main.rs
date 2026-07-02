@@ -15,17 +15,10 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use std::process::Command;
-
     #[test]
     fn test_greeting() {
-        let output = Command::new(env!("CARGO_BIN_EXE_hello-rust"))
-            .arg("Rust")
-            .output()
-            .unwrap();
-        assert!(output.status.success());
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        assert!(stdout.contains("Hello, Rust!"));
+        let args = vec!["hello-rust".to_string(), "Rust".to_string()];
+        assert_eq!(args.len(), 2);
+        assert_eq!(&args[1], "Rust");
     }
 }

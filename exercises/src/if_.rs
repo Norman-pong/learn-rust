@@ -22,7 +22,7 @@ fn if2() {
 
     // if 分支的类型必须一致，请统一两个分支的类型
     let _condition = true; // 原代码 let condition = true; 加 _ 前缀避免 unused var 警告
-    let number: i32 = todo!("原代码 let number = if condition { 5 } else { \"five\" }; if/else 分支类型不一致导致编译错误");
+    let number: i32 = todo!("原代码 let number = if condition {{ 5 }} else {{ \"five\" }}; if/else 分支类型不一致导致编译错误");
     assert_eq!(number, 5);
 }
 

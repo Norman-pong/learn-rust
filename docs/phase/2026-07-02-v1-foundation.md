@@ -1,6 +1,6 @@
 # Phase · v1.0 基础骨架（6 周）
 
-> 状态：草稿 · 日期：2026-07-02
+> 状态：已完成 · 日期：2026-07-02
 >
 > **设计依据**：调研已归档至 [`docs/reference/sources.md`](../reference/sources.md)
 > **上游 PRD**：[learn-rust-notebook](../prd/2026-07-02-learn-rust-notebook.md)（§5 交付范围 → 任务分解）
