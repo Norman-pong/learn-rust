@@ -1,0 +1,14 @@
+[book]
+title = "Norman's Rust 笔记本"
+authors = ["Norman"]
+language = "zh-CN"
+
+[output.html]
+mathjax-support = true
+
+[output.html.playground]
+editable = true
+runnable = true
+
+[rust]
+edition = "2024"
