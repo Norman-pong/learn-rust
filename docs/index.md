@@ -52,7 +52,9 @@ graph LR
 ## Phase（阶段任务）
 
 | 日期 | 文档 | 状态 | 对应 PRD |
+|---|---|---|---|
 | 2026-07-02 | [v1-foundation](./phase/2026-07-02-v1-foundation.md) | 已完成 | learn-rust-notebook |
+| 2026-07-02 | [v1-1-practice](./phase/2026-07-02-v1-1-practice.md) | 草稿 | learn-rust-notebook §5.2 |
 
 ## Architecture（架构设计）
 
