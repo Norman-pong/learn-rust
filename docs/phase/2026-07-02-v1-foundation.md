@@ -132,8 +132,8 @@
 完成以下全部条目即 v1.0 交付：
 
 - [x] `mdbook serve` 可浏览全部已写内容（≥ 15 篇内容单元）— 18 篇
-- [ ] `cargo test -- --ignored` 全部练习题通过 — 20/93 pass，73 题用 `todo!()` 占位，需逐题完成
-- [ ] `just test` 一键跑通 — 同上，exercises 需完成
+- [x] `cargo test -- --ignored` 全部练习题通过 — 93/93 pass ✅
+- [x] `just test` 一键跑通 — 93/93 pass ✅
 - [ ] `projects/01-tools/` 至少 1 个 CLI crate 在生产中替代了原脚本 — 脚手架就位，替代目标待选定
 - [x] `notes/weekly/` 含 W27-W32 共 6 篇周报
 - [x] 每个项目目录含 `DEVLOG.md`（至少 01-tools 有内容）
