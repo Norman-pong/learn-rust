@@ -1,13 +1,14 @@
 // exercises/src/enums.rs
-// Chapter 08: 枚举 — rustlings fork
-// 快进章节（预计 1h 内完成）
+// Chapter 08: Enums — rustlings fork
+// 快进章节
 
-// 每题含 `// I AM NOT DONE` 注释，运行前删除即可
+// 枚举是 Rust 中表达"多选一"数据的方式。本章练习枚举定义、模式匹配和 match。
 
 #[test]
 #[ignore]
-    // I AM NOT DONE
 fn enums1() {
+    // I AM NOT DONE
+    // 定义一个枚举 Message 包含三种变体：Quit、ChangeColor(i32, i32, i32)、Write(String)
     enum Message {
         Quit,
         ChangeColor(i32, i32, i32),
@@ -15,6 +16,7 @@ fn enums1() {
     }
 
     let msg = Message::Write(String::from("hello"));
+    // TODO: 用 match 匹配 msg 并返回内容
     let text = match msg {
         Message::Quit => String::new(),
         Message::ChangeColor(_, _, _) => String::from("changed color"),
@@ -24,13 +26,13 @@ fn enums1() {
     assert_eq!(text, "hello");
 }
 
-// Exercise enums2
-// 使用 if let 解构 Option，处理空值返回默认值。
 #[test]
 #[ignore]
-    // I AM NOT DONE
 fn enums2() {
+    // I AM NOT DONE
+    // 使用 Option 枚举表达可能为空的值
     let maybe_value: Option<i32> = Some(42);
+    // TODO: 用 if let 解构 maybe_value
     let result = if let Some(v) = maybe_value {
         v * 2
     } else {
@@ -40,19 +42,17 @@ fn enums2() {
     assert_eq!(result, 84);
 }
 
-// Exercise enums3
-// 为枚举实现方法，在 match 中根据变体执行不同计算。
 #[test]
 #[ignore]
-    // I AM NOT DONE
 fn enums3() {
+    // I AM NOT DONE
+    // 为枚举实现方法
     enum Operation {
         Add(i32, i32),
         Multiply(i32, i32),
     }
 
     impl Operation {
-    // I AM NOT DONE
         fn compute(&self) -> i32 {
             match self {
                 Operation::Add(a, b) => a + b,
