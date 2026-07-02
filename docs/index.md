@@ -48,6 +48,7 @@ graph LR
 | 日期 | 文档 | 状态 | 备注 |
 |---|---|---|---|
 | 2026-07-02 | [learn-rust-notebook](./prd/2026-07-02-learn-rust-notebook.md) | 已完成 | Norman 个人 Rust 笔记本 |
+| 2026-07-02 | [v1-2-quality](./prd/2026-07-02-v1-2-quality.md) | 草稿 | 质量加固：reset + check-docs + CLI 实用化 |
 
 ## Phase（阶段任务）
 
