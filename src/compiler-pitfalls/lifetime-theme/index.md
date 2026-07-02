@@ -1,7 +1,38 @@
 # 生命周期编译错误案例
 
-> 本章收集 Rust 编译器报出的生命周期相关错误——每个案例遵循"错码 → 报错 → 解释 → 修复"四段格式。
-> 案例均来自实际编码中的真实错误，逐渐积累。
+> 一句话定位：这里是 Rust 编译器报出的生命周期相关错误实战汇编，每个案例按“错码 → 报错 → 解释 → 修复”四段拆解，目标是从错误信息反推借用规则，而不是背诵签名。
+
+---
+
+## 与 JS/TS 的关键差异
+
+JS/TS 里没有“生命周期”这一编译期概念。对象引用在垃圾回收器（GC）管理下可以任意传递、返回、闭包捕获，只要运行时还有可达路径就不会悬垂。Rust 没有 GC，引用的有效性必须在编译阶段被证明：函数签名、结构体字段、闭包捕获都必须显式或隐式地声明“借用能活多久”。这带来的最大体感差异是：在 JS 里你可以返回一个局部数组的切片或让闭包引用局部变量；在 Rust 里，这些行为会被编译器在写代码时直接拒绝，而不是在运行时才偶尔出现 `undefined` 或内存异常。
+
+| 场景 | Rust 行为 | JS/TS 行为 |
+|---|---|---|
+| 返回局部变量引用 | 编译错误（E0515 / E0597） | 运行时可能 GC 保留，也可能 `undefined` |
+| 结构体存引用 | 必须写 `<'a>` 生命周期参数 | 对象属性可直接引用另一对象 |
+| 同时读写同一数据 | 编译错误（E0502 / E0506） | 允许，可能产生时序 bug |
+| 闭包捕获局部变量 | 必须 `move` 进闭包，否则报错 | 闭包自然捕获变量引用 |
+| 函数返回两个输入中的较长引用 | 需要单独生命周期参数 `'b: 'a` | 无需考虑 |
+
+---
+
+## 容易踩的坑
+
+1. 看到 `cannot return reference to temporary value`，第一反应不是改返回类型，而是检查“返回的引用到底是谁拥有的”。
+2. 给结构体加生命周期时不要只加字段，忘记 `struct Foo<'a>` 头上的参数声明。
+3. 可变借用与不可变借用冲突时，优先“缩小引用作用域”而不是到处加 `clone()`。
+4. 闭包想返回时，局部变量要么 `move` 进去，要么放进 `Arc`/channel，不能直接借用。
+5. 给函数参数统一标同一个 `'a` 不一定对；返回值的生命周期通常应该由“最短的那个输入”或单独参数决定。
+
+---
+
+## 交叉链接
+
+- 概念层：[生命周期基础](../ownership-lifetimes/lifetime-basic.md) · [引用与借用](../ownership-lifetimes/reference-borrow.md)
+- 深入层：[Crust of Rust 笔记](../deep-dives/crust-of-rust-notes.md)（Send / Sync / `'static` / move 闭包）
+- 练习层：见 `exercises/src/lifetimes.rs`（rustlings 第 14 章）
 
 ---
 
@@ -18,7 +49,7 @@ fn first_word(s: &str) -> &str {
 
 ### 报错
 
-```
+```text
 error[E0515]: cannot return reference to local variable `words`
  --> src/main.rs:3:5
   |
@@ -59,7 +90,7 @@ struct User {
 
 ### 报错
 
-```
+```text
 error[E0106]: missing lifetime specifier
  --> src/main.rs:2:11
   |
@@ -74,7 +105,7 @@ help: consider introducing a named lifetime parameter
 
 ### 解释
 
-结构体持有引用时，必须标注生命周期——告诉编译器"这个结构体不能比它引用的数据活得更久"。
+结构体持有引用时，必须标注生命周期——告诉编译器“这个结构体不能比它引用的数据活得更久”。
 
 ### 修复
 
@@ -102,7 +133,7 @@ fn main() {
 
 ### 报错
 
-```
+```text
 error[E0502]: cannot borrow `v` as mutable because it is also borrowed as immutable
  --> src/main.rs:4:5
   |
@@ -138,17 +169,17 @@ fn main() {
 ```rust
 fn create_counter() -> impl FnMut() -> i32 {
     let mut count = 0;
-    | | { count += 1; count }  // error: closure may outlive `count`
+    || { count += 1; count }  // error: closure may outlive `count`
 }
 ```
 
 ### 报错
 
-```
+```text
 error[E0373]: closure may outlive the current function, but it borrows `count`
  --> src/main.rs:3:5
   |
-3 |     | | { count += 1; count }
+3 |     || { count += 1; count }
   |     ^^^      ----- `count` is borrowed here
   |     |
   |     may outlive borrowed value `count`
@@ -196,7 +227,7 @@ fn main() {
 
 ### 报错
 
-```
+```text
 error[E0597]: `s2` does not live long enough
   --> src/main.rs:8:31
    |
@@ -217,10 +248,19 @@ error[E0597]: `s2` does not live long enough
 ### 修复
 
 ```rust
-// 如果确定 result 只需和 s1 一样长，改调用方式：
+// 方案 1：如果语义允许，让 result 留在 s2 的作用域内
 fn main() {
-    let s1 = String::from("always here");
-    let result = longer(&s1, &s1);  // 两个引用生命周期相同即可
-    println!("{result}");
+    let s1 = String::from("hello");
+    {
+        let s2 = String::from("world");
+        let result = longer(&s1, &s2);
+        println!("{result}");  // result 只在这里使用
+    }
+}
+
+// 方案 2：如果确实需要返回与较长输入同生命周期的引用，
+// 使用两个生命周期参数，并声明 outlives 关系
+fn longer_v2<'a, 'b: 'a>(x: &'a str, y: &'b str) -> &'a str {
+    if x.len() > y.len() { x } else { y }
 }
 ```

@@ -1,81 +1,93 @@
 # Async/Await
 
-> **一句话**：Rust 的 `async`/`await` 是协作式并发——一个线程可以运行成千上万个异步任务，比系统线程轻量得多。
+> **一句话定位**：Rust 的 `async`/`await` 是**协作式、零成本抽象的并发原语**——`async fn` 返回一个惰性的 `Future`，必须由 runtime（如 tokio）的 executor 轮询（poll）到完成；一个 OS 线程因此可以承载成千上万个 task，而无需为每个 task 分配线程栈。
 
 ## 与 JS/TS 的关键差异
 
-| 概念 | Rust | TypeScript |
-|------|------|------------|
-| async 函数 | 返回 `impl Future<Output = T>`（惰性） | 返回 `Promise<T>`（立即执行） |
-| await | `.await` 后缀语法 | `await` 前缀关键字 |
-| 执行模型 | 需要外部 runtime 驱动（tokio/smol） | 事件循环自动驱动 |
-| 取消 | Drop Future（协作式） | AbortController |
-| 错误处理 | Future 不内置错误通道（`Result` 包装） | Promise rejection |
+| 维度 | Rust | TypeScript / JavaScript |
+|------|------|------------------------|
+| 调用即执行？ | 否。`async fn` 调用返回 `impl Future<Output = T>`，**不执行任何代码** | 是。`async function` 调用返回 `Promise`，函数体立即开始执行直到第一个 `await` |
+| await 语法 | 后缀：`.await` | 前缀：`await expr`（或 `expr await` 在旧提案） |
+| 事件循环 | 由外部 runtime 提供，executor 负责 `poll` | 引擎内置，自动调度 microtask / macrotask |
+| 取消机制 | 丢弃 `Future` 即取消（协作式） | `AbortController` + `AbortSignal` |
+| 错误通道 | 无内置 rejection，必须显式返回 `Result<T, E>` | `Promise` 可 reject，可用 `try/catch` |
+| 多任务并发 | `tokio::join!` / `tokio::select!` | `Promise.all` / `Promise.race` / `Promise.allSettled` |
 
-**核心差异**：Rust 的 `async fn` 是惰性的——调用不执行任何代码，只是构造一个 `Future`。需要 `.await` 或交给 runtime 才会真正执行。这与 JS 的 Promise 立即执行完全不同。
+**核心差异**：Rust 的 `Future` 是**惰性构造的**状态机；JS 的 `Promise` 是**立即开始执行**的异步操作句柄。Rust 需要显式 `.await` 或交给 runtime 才会推进状态机。
 
-## 代码对比表
+## 代码对比
 
 ### 基础 async/await
 
 ```rust
-// 需要 tokio 或其他 runtime
+// Rust：async fn 返回 Future，调用点不执行
 async fn fetch_data() -> String {
-    // 模拟 IO 操作
+    // tokio::time::sleep 是非阻塞的 async sleep
     tokio::time::sleep(std::time::Duration::from_millis(100)).await;
     "data".to_string()
 }
 
 async fn process() {
-    let data = fetch_data().await;  // 等待 Future 完成
+    let data = fetch_data().await; // 真正开始执行并等待完成
     println!("got: {data}");
 }
 
-// 需要 runtime 来运行
-// #[tokio::main]
-// async fn main() {
-//     process().await;
-// }
+#[tokio::main]
+async fn main() {
+    process().await;
+}
 ```
 
 ```typescript
-// TypeScript — Promise 立即执行
+// TypeScript：async function 调用后立即启动，直到第一个 await 才让出
 async function fetchData(): Promise<string> {
-    await new Promise(r => setTimeout(r, 100));
+    await new Promise(resolve => setTimeout(resolve, 100));
     return "data";
 }
-// fetchData() 立即开始执行（返回 Promise）
+
+async function process(): Promise<void> {
+    const data = await fetchData(); // Promise 已经在 resolve 路上了
+    console.log(`got: ${data}`);
+}
+
+process();
 ```
 
 ### Future 模型
 
 ```rust
-// Future trait（简化版）
-// trait Future {
-//     type Output;
-//     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>;
-// }
+// Rust 标准库中的 Future trait（简化示意）
+pub trait Future {
+    type Output;
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>;
+}
 
-// Pin: 保证 Future 不会在内存中移动
-// Context: 提供 waker 用于通知 runtime 可以再次 poll
+// Pin<&mut Self>：防止 Future 在内存中被移动，因为 async 状态机可能自引用
+// Context：提供 Waker，IO 就绪时唤醒该任务，让 executor 再次 poll
 ```
 
-### 并发执行多个 Future
+```typescript
+// JS 没有显式的 Future/Promise 状态机暴露给开发者；
+// 引擎内部维护 promise 状态（pending / fulfilled / rejected），
+// 通过微任务队列自动执行 then/catch 回调。
+```
+
+### 并发等待多个任务
 
 ```rust
-// tokio::join! — 并发等待多个 Future
+use tokio::time::{sleep, Duration};
+
 async fn get_user() -> String { "user".into() }
 async fn get_posts() -> String { "posts".into() }
 
 async fn load_page() {
+    // tokio::join! 类似 Promise.all：并发执行，等待全部完成
     let (user, posts) = tokio::join!(get_user(), get_posts());
     println!("{user}, {posts}");
 }
 
-// tokio::select! — 竞速，取最先完成的
-use tokio::time::{sleep, Duration};
-
 async fn race() {
+    // tokio::select! 类似 Promise.race：取最先完成的 Future
     tokio::select! {
         _ = sleep(Duration::from_secs(1)) => println!("1s passed"),
         _ = sleep(Duration::from_secs(2)) => println!("2s passed"),
@@ -84,26 +96,60 @@ async fn race() {
 ```
 
 ```typescript
-// TypeScript — Promise.all 并发
-const [user, posts] = await Promise.all([getUser(), getPosts()]);
+async function getUser(): Promise<string> { return "user"; }
+async function getPosts(): Promise<string> { return "posts"; }
 
-// Promise.race — 竞速
-await Promise.race([
-    new Promise(r => setTimeout(r, 1000)),
-    new Promise(r => setTimeout(r, 2000)),
-]);
+async function loadPage(): Promise<void> {
+    const [user, posts] = await Promise.all([getUser(), getPosts()]);
+    console.log(`${user}, ${posts}`);
+}
+
+async function race(): Promise<void> {
+    await Promise.race([
+        new Promise(resolve => setTimeout(resolve, 1000)),
+        new Promise(resolve => setTimeout(resolve, 2000)),
+    ]);
+    console.log("first finished");
+}
 ```
 
-## 容易踩的坑
+### 与事件循环的对比
 
-1. **Future 惰性**——`async fn` 不调用 `.await` 就不会执行任何代码
-2. **忘记 `.await`**——编译器会 warn，但不会阻止 Future 被 drop
-3. **阻塞操作**——`async fn` 中调用 `std::thread::sleep` 会阻塞整个 runtime
-4. **Pin 的复杂性**——自引用类型的 async fn 产生 `!Unpin` Future，操作受限
-5. **runtime 依赖**——没有 tokio/smol 就无法运行 async 代码
+```rust
+// Rust：没有全局事件循环；tokio 的 Runtime 管理多个线程与 task 队列
+// 任务被 poll 到 await 点 -> 挂起 -> IO 完成 -> Waker 唤醒 -> 重新入队 poll
+#[tokio::main]
+async fn main() {
+    tokio::spawn(async { /* 一个 task */ }); // 提交到 executor 的任务队列
+    tokio::spawn(async { /* 另一个 task */ });
+}
+```
+
+```typescript
+// JS：每个执行上下文有唯一的事件循环
+// 调用栈 -> 清空 -> 微任务队列（Promise.then） -> 宏任务队列（setTimeout等） -> 循环
+async function main() {
+    setTimeout(() => console.log("macrotask"), 0);
+    Promise.resolve().then(() => console.log("microtask"));
+    await Promise.resolve(); // 挂起当前 async 函数，让出主线程
+    console.log(" resumed");
+}
+main();
+// 输出顺序：microtask -> resumed -> macrotask
+```
+
+## 常见陷阱
+
+1. **Future 是惰性的**——`let f = fetch_data();` 只是构造了一个状态机，不执行任何 IO；必须 `.await` 或 `spawn` 它。
+2. **在 async 中做阻塞调用**——`std::thread::sleep` 会阻塞整个 OS 线程，导致该线程上的所有 task 一起卡住；应使用 `tokio::time::sleep`。
+3. **忘记 `.await`**——`fetch_data();` 没有 `.await` 也不会报错，函数被构造后立即 drop，什么都不会发生。
+4. **`.await` 持有锁**——`let guard = mutex.lock(); some_future.await;` 会让 guard 跨越 await 点，若 guard 不是 `Send` 或锁住的 Mutex 不是 async 锁，会编译失败或死锁。应使用 `tokio::sync::Mutex` 或把锁缩小到非 await 区域。
+5. **自引用 Future 与 Pin**——由 `async fn` 生成的状态机经常 `!Unpin`，不能随意 `mem::swap` 或移出 `&mut` 后再取走；需要理解 `Pin` 语义才能安全组合 Future。
+6. **运行时依赖**——纯 `std` 没有 executor，`async fn` 不能直接运行；必须引入 tokio / smol / async-std 等 runtime。
 
 ## 交叉链接
 
-- → [线程](thread.md) — async 是系统线程的协作式替代
-- → [Tokio 入门](tokio.md) — 最常用的异步 runtime
-- → [Send 与 Sync](send-sync.md) — async task 的 Send 约束
+- → [线程](thread.md) — async task 是系统线程的协作式替代，理解何时用线程、何时用 async。
+- → [Tokio 入门](tokio.md) — 最常用的异步 runtime，看 executor、spawn、channel 等具体用法。
+- → [Send 与 Sync](send-sync.md) — 跨线程的 async task 对 `Send`/`'static` 有严格要求。
+- → [生命周期主题](../compiler-pitfalls/lifetime-theme/index.md) — `async fn` 借用局部变量时容易出现 lifetime 问题。

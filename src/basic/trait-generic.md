@@ -12,6 +12,8 @@
 | 运算符重载 | 通过 trait（`Add`, `Index`, `Deref` 等） | 不支持 |
 | 继承 | 无类继承，trait 可以有超 trait（`trait B: A`） | class extends / implements |
 
+**核心差异**：TypeScript 的接口是结构性（structural）的——只要形状匹配，就能传入；Rust 的 trait 是名义性（nominal）的——必须显式 `impl Trait for Type`，编译器才会建立关系。这种显式性让 Rust 的 trait 可以拥有默认实现、关联类型、超 trait 等更丰富的抽象能力。泛型在 Rust 中通过单态化生成具体代码，零运行时开销，但会增加二进制体积；TypeScript 的泛型在编译后被擦除。
+
 ## 代码对比表
 
 ### 基础 Trait + 泛型
@@ -26,11 +28,15 @@ trait Summary {
     }
 }
 
-struct Article { title: String, content: String }
+struct Article {
+    title: String,
+    content: String,
+}
 
 impl Summary for Article {
     fn summarize(&self) -> String {
-        format!("{}...", &self.title[..20.min(self.title.len())])
+        let end = self.title.len().min(20);
+        format!("{}...", &self.title[..end])
     }
 }
 
@@ -38,50 +44,189 @@ impl Summary for Article {
 fn notify<T: Summary>(item: &T) {
     println!("Breaking: {}", item.summarize());
 }
+
+fn main() {
+    let article = Article {
+        title: "Rust 1.0 Released".to_string(),
+        content: "...".to_string(),
+    };
+    notify(&article);
+}
 ```
 
 ```typescript
-// TypeScript — 接口 + 泛型
 interface Summary {
     summarize(): string;
 }
 
 class Article implements Summary {
-    constructor(public title: string, public content: string) {}
-    summarize(): string { return `${this.title.slice(0, 20)}...`; }
+    constructor(
+        public title: string,
+        public content: string,
+    ) {}
+
+    summarize(): string {
+        return `${this.title.slice(0, 20)}...`;
+    }
 }
 
 function notify<T extends Summary>(item: T): void {
     console.log(`Breaking: ${item.summarize()}`);
 }
+
+const article = new Article("Rust 1.0 Released", "...");
+notify(article);
 ```
 
-### impl Trait（RPIT）— 简化返回类型
+### 关联类型
 
 ```rust
-// 旧写法：指定具体类型
+trait Graph {
+    type Node;
+    type Edge;
+
+    fn nodes(&self) -> Vec<Self::Node>;
+    fn edges(&self) -> Vec<Self::Edge>;
+}
+
+struct SimpleGraph;
+
+impl Graph for SimpleGraph {
+    type Node = i32;
+    type Edge = (i32, i32);
+
+    fn nodes(&self) -> Vec<i32> {
+        vec![1, 2, 3]
+    }
+
+    fn edges(&self) -> Vec<(i32, i32)> {
+        vec![(1, 2), (2, 3)]
+    }
+}
+
+fn main() {
+    let g = SimpleGraph;
+    println!("{:?}, {:?}", g.nodes(), g.edges());
+}
+```
+
+```typescript
+interface Graph<N, E> {
+    nodes(): N[];
+    edges(): E[];
+}
+
+class SimpleGraph implements Graph<number, [number, number]> {
+    nodes(): number[] {
+        return [1, 2, 3];
+    }
+
+    edges(): [number, number][] {
+        return [[1, 2], [2, 3]];
+    }
+}
+
+const g = new SimpleGraph();
+console.log(g.nodes(), g.edges());
+```
+
+### `impl Trait`（RPIT）— 简化返回类型
+
+```rust
+// 返回一个闭包类型，但不暴露具体类型名
 fn returns_closure() -> impl Fn(i32) -> i32 {
     |x| x + 1
 }
 
-// RPITIT（Return Position impl Trait in Trait）
-trait Factory {
-    fn create(&self) -> impl std::fmt::Display;  // Rust 1.75+
+fn main() {
+    let c = returns_closure();
+    println!("{}", c(5)); // 6
 }
 ```
 
-### dyn Trait — 动态分发
+```typescript
+function returnsClosure(): (x: number) => number {
+    return (x) => x + 1;
+}
+
+const c = returnsClosure();
+console.log(c(5)); // 6
+```
+
+### `dyn Trait` — 动态分发
 
 ```rust
+trait Drawable {
+    fn draw(&self);
+}
+
+struct Circle;
+struct Square;
+
+impl Drawable for Circle {
+    fn draw(&self) { println!("circle"); }
+}
+
+impl Drawable for Square {
+    fn draw(&self) { println!("square"); }
+}
+
 // 静态分发：编译期为每个 T 生成单独代码
-fn static_dispatch<T: Summary>(item: &T) { ... }
+fn static_dispatch<T: Drawable>(item: &T) {
+    item.draw();
+}
 
 // 动态分发：运行时通过 vtable 调用
-fn dynamic_dispatch(item: &dyn Summary) { ... }
+fn dynamic_dispatch(item: &dyn Drawable) {
+    item.draw();
+}
 
-let article = Article { ... };
-static_dispatch(&article);   // 单态化，略快
-dynamic_dispatch(&article);  // vtable，略慢但灵活
+fn main() {
+    let circle = Circle;
+    let square = Square;
+
+    static_dispatch(&circle);
+    dynamic_dispatch(&square);
+
+    // 同类型集合
+    let shapes: Vec<&dyn Drawable> = vec![&circle, &square];
+    for s in shapes {
+        s.draw();
+    }
+}
+```
+
+```typescript
+interface Drawable {
+    draw(): void;
+}
+
+class Circle implements Drawable {
+    draw() { console.log("circle"); }
+}
+
+class Square implements Drawable {
+    draw() { console.log("square"); }
+}
+
+function staticDispatch(item: Drawable): void {
+    item.draw();
+}
+
+function dynamicDispatch(item: Drawable): void {
+    item.draw();
+}
+
+const circle = new Circle();
+const square = new Square();
+
+staticDispatch(circle);
+dynamicDispatch(square);
+
+const shapes: Drawable[] = [circle, square];
+for (const s of shapes) {
+    s.draw();
+}
 ```
 
 ### 常见标准 Trait 速查
@@ -105,35 +250,38 @@ dynamic_dispatch(&article);  // vtable，略慢但灵活
 ```rust
 fn identity<T>(x: T) -> T { x }
 
-// 编译器为每个使用的具体类型生成一份代码：
-let a = identity(42);     // → fn identity_i32(x: i32) -> i32
-let b = identity("hi");   // → fn identity_str(x: &str) -> &str
+fn main() {
+    // 编译器为每个使用的具体类型生成一份代码
+    let a = identity(42);     // → fn identity_i32(x: i32) -> i32
+    let b = identity("hi");   // → fn identity_str(x: &str) -> &str
+
+    println!("{a}, {b}");
+}
 // 零运行时开销，但会增加二进制大小
 ```
 
-## RPITIT — async fn in trait
-
-```rust
-// Rust 1.75+ 支持
-trait AsyncService {
-    async fn fetch(&self) -> String;
+```typescript
+function identity<T>(x: T): T {
+    return x;
 }
-// 等价于：
-// trait AsyncService {
-//     fn fetch(&self) -> impl Future<Output = String>;
-// }
+
+const a = identity(42);     // 运行时类型擦除
+const b = identity("hi");   // 运行时类型擦除
+
+console.log(`${a}, ${b}`);
 ```
 
 ## 容易踩的坑
 
-1. **Orphan Rule（孤儿规则）**——不能为外部类型实现外部 trait（`impl Display for Vec<T>` ❌）
-2. **`impl Trait` 不透明**——调用者不知道具体类型，不能用于关联类型
-3. **`dyn Trait` 有大小限制**——trait object 是 `!Sized`，需要 `&dyn` 或 `Box<dyn>`
-4. **泛型膨胀**——`fn foo<T: Trait>` 为每种 T 生成代码，太多泛型参数导致二进制变大
-5. **`Copy` 和 `Drop` 互斥**——不能同时 derive/impl
+1. **Orphan Rule（孤儿规则）**——不能为外部类型实现外部 trait（`impl Display for Vec<T>` ❌），只能为本地类型实现外部 trait，或为本地类型实现外部 trait。
+2. **`impl Trait` 返回类型不透明**——调用者不知道具体类型，不能把返回值赋给具体类型变量，也不能用于关联类型位置。
+3. **`dyn Trait` 有大小限制**——trait object 是 `!Sized`，需要 `Box<dyn Trait>` 或 `&dyn Trait` 才能使用。
+4. **泛型膨胀**——`fn foo<T: Trait>` 为每种 T 生成代码，过多泛型参数会导致二进制变大、编译变慢。
+5. **`Copy` 和 `Drop` 互斥**——一个类型实现了 `Drop`（需要析构），就不能同时实现 `Copy`，因为 Copy 语义与自定义析构冲突。
 
 ## 交叉链接
 
 - → [结构体与枚举](struct-enum.md) — trait impl 的主体
 - → [闭包](closure.md) — `Fn`/`FnMut`/`FnOnce` trait
 - → [错误处理](error.md) — `thiserror` 用 derive 实现 `Error` trait
+- → [函数](function.md) — 泛型函数与 trait bound 参数
