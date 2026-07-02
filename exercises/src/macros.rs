@@ -1,38 +1,38 @@
 // exercises/src/macros.rs
-// Chapter 21: Macros — rustlings fork
+// Chapter 21: 宏 — rustlings fork
 // 深做章节
 
-// 宏分为声明宏 macro_rules! 和过程宏。本章仅涉及声明宏，要求你实现
-// 简单的 vec!、format! 风格宏。
+// 每题含 `// I AM NOT DONE` 注释，运行前删除即可
 
 #[test]
 #[ignore]
-fn macros1() {
     // I AM NOT DONE
-    // 调用 vec! 宏创建包含 1, 2, 3 的向量。
-    let v: Vec<i32> = todo!("使用 vec! 宏");
+fn macros1() {
+    let v = vec![1, 2, 3];
+
     assert_eq!(v, vec![1, 2, 3]);
 }
 
+// Exercise macros2
+// 使用 format! 宏构造一个字符串。
 #[test]
 #[ignore]
-fn macros2() {
     // I AM NOT DONE
-    // 使用 format! 宏构造一个字符串。
+fn macros2() {
     let name = "Rust";
     let age = 18usize;
 
-    let info: String = todo!("使用 format!");
+    let info = format!("{name} is {age} years old");
+
     assert_eq!(info, "Rust is 18 years old");
 }
 
+// Exercise macros3
+// 定义并使用一个简单的 macro_rules! 宏，计算参数个数。
 #[test]
 #[ignore]
-fn macros3() {
     // I AM NOT DONE
-    // 定义并使用一个简单的 macro_rules! 宏，计算参数个数。
-    todo!("确认 count_args! 宏能正确计算参数个数");
-
+fn macros3() {
     macro_rules! count_args {
         () => { 0 };
         ($($x:expr),+ $(,)?) => { {
@@ -50,17 +50,24 @@ fn macros3() {
     assert_eq!(count_args!("a", "b", "c", "d"), 4);
 }
 
+// Exercise macros4
+// 定义一个 macro_rules! 宏，实现类似 vec![x; n] 的重复模式。
 #[test]
 #[ignore]
-fn macros4() {
     // I AM NOT DONE
-    // 定义一个 macro_rules! 宏，实现类似 vec![x; n] 的重复模式。
+fn macros4() {
     macro_rules! repeat {
         ($value:expr; $count:expr) => {
-            todo!("生成 vec![$value; $count]")
+            {
+                let mut v = Vec::new();
+                for _ in 0..$count {
+                    v.push($value);
+                }
+                v
+            }
         };
     }
 
-    let v: Vec<i32> = repeat!(7; 5);
+    let v = repeat!(7; 5);
     assert_eq!(v, vec![7, 7, 7, 7, 7]);
 }

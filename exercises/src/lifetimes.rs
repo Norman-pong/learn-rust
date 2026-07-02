@@ -12,7 +12,7 @@ fn lifetimes1() {
     // 标注函数签名，让返回的引用与输入字符串中活得较短的那个一样长。
     fn shortest<'a>(x: &'a str, y: &'a str) -> &'a str {
         // I AM NOT DONE: 补全函数体，返回 x 和 y 中较短者
-        todo!("比较 x 和 y 的长度，返回较短者")
+        if x.len() < y.len() { x } else { y }
     }
 
     let s1 = String::from("Rust");
@@ -50,7 +50,7 @@ fn lifetimes3() {
     // I AM NOT DONE
     // 实现一个函数，返回从字符串中按第一个空格切分的前半部分。
     fn first_word(s: &str) -> &str {
-        todo!("实现 first_word 并保持正确的生命周期")
+        s.split_whitespace().next().unwrap_or(s)
     }
 
     let s = String::from("hello world");

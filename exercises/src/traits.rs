@@ -2,32 +2,33 @@
 // Chapter 15: Traits — rustlings fork
 // 深做章节
 
-// Trait 是 Rust 定义共享行为的接口。本章覆盖 trait 实现、derive、
-// 默认方法、泛型 trait bound、Deref 与 Drop。
+// 每题含 `// I AM NOT DONE` 注释，运行前删除即可
 
 #[test]
 #[ignore]
-fn traits1() {
     // I AM NOT DONE
-    // 为类型 u32 实现 Greet trait。
+fn traits1() {
     trait Greet {
+    // I AM NOT DONE
         fn greet(&self) -> String;
     }
 
     impl Greet for u32 {
+    // I AM NOT DONE
         fn greet(&self) -> String {
-            todo!("返回格式为 'I am number {self}' 的字符串")
+            format!("I am number {self}")
         }
     }
 
     assert_eq!(42.greet(), "I am number 42".to_string());
 }
 
+// Exercise traits2
+// 使用 #[derive] 让 Point 支持 Debug、PartialEq 和 Clone。
 #[test]
 #[ignore]
-fn traits2() {
     // I AM NOT DONE
-    // 使用 #[derive] 让 Point 支持 Debug、PartialEq 和 Clone。
+fn traits2() {
     #[derive(Debug, PartialEq, Clone)]
     struct Point {
         x: i32,
@@ -35,18 +36,19 @@ fn traits2() {
     }
 
     let p1 = Point { x: 1, y: 2 };
-    // I AM NOT DONE: 原代码 p2 = p1.clone() 因未实现 Clone 失败；此处用 todo!() 占位
-    let p2 = todo!("创建 p1 的克隆");
+    let p2 = p1.clone();
     assert_eq!(p1, p2);
     assert_eq!(format!("{:?}", p1), "Point { x: 1, y: 2 }");
 }
 
+// Exercise traits3
+// 实现 Summary trait，并为 Tweet 提供 @username: content 格式。
 #[test]
 #[ignore]
-fn traits3() {
     // I AM NOT DONE
-    // 实现一个 Summary trait，并为 NewsArticle 和 Tweet 提供不同默认实现。
+fn traits3() {
     trait Summary {
+    // I AM NOT DONE
         fn summarize(&self) -> String {
             "(Read more...)".to_string()
         }
@@ -62,14 +64,16 @@ fn traits3() {
     }
 
     impl Summary for NewsArticle {
+    // I AM NOT DONE
         fn summarize(&self) -> String {
             format!("NEWS: {}", self.headline)
         }
     }
 
     impl Summary for Tweet {
+    // I AM NOT DONE
         fn summarize(&self) -> String {
-            todo!("返回格式为 '@username: content' 的字符串")
+            format!("@{}: {}", self.username, self.content)
         }
     }
 
@@ -85,36 +89,41 @@ fn traits3() {
     assert_eq!(article.summarize(), "NEWS: Rust 1.85 released");
 }
 
+// Exercise traits4
+// 使用泛型 trait bound 调用 greet。
 #[test]
 #[ignore]
-fn traits4() {
     // I AM NOT DONE
-    // 使用泛型 trait bound 实现一个“能打招呼就打印”的函数。
+fn traits4() {
     trait Greet {
+    // I AM NOT DONE
         fn greet(&self) -> String;
     }
 
     impl Greet for String {
+    // I AM NOT DONE
         fn greet(&self) -> String {
             format!("Hello, {self}!")
         }
     }
+    // I AM NOT DONE
 
     fn say_hello<T>(thing: T) -> String
     where
         T: Greet,
     {
-        todo!("调用 thing.greet() 并返回结果")
+        thing.greet()
     }
 
     assert_eq!(say_hello(String::from("world")), "Hello, world!");
 }
 
+// Exercise traits5
+// 实现 Drop trait，变量离开作用域时增加 DROPPED_COUNT。
 #[test]
 #[ignore]
-fn traits5() {
     // I AM NOT DONE
-    // 实现 Drop trait，在变量离开作用域时记录被释放的次数。
+fn traits5() {
     use std::sync::atomic::{AtomicUsize, Ordering};
 
     static DROPPED_COUNT: AtomicUsize = AtomicUsize::new(0);
@@ -124,6 +133,7 @@ fn traits5() {
     }
 
     impl Drop for DroppingCounter {
+    // I AM NOT DONE
         fn drop(&mut self) {
             DROPPED_COUNT.fetch_add(1, Ordering::SeqCst);
         }
@@ -135,6 +145,5 @@ fn traits5() {
         let _c = DroppingCounter { _id: 3 };
     }
 
-    let dropped: usize = todo!("有多少个值被 drop？");
-    assert_eq!(DROPPED_COUNT.load(Ordering::SeqCst), dropped);
+    assert_eq!(DROPPED_COUNT.load(Ordering::SeqCst), 3);
 }

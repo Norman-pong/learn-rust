@@ -2,14 +2,11 @@
 // Chapter 14: Generics — rustlings fork
 // 深做章节
 
-// 泛型让你编写一份适用于多种类型的代码。本章要求你为结构体、函数添加
-// 泛型参数，并理解 trait bound 对泛型函数的限制。
-
 #[test]
 #[ignore]
 fn generics1() {
     // I AM NOT DONE
-    // 补全 impl 块：为 Wrapper<T> 添加 value() 方法返回 &self.value
+    // 实现一个泛型 Wrapper<T>，可以包装任意类型并解包
     struct Wrapper<T> {
         value: T,
     }
@@ -20,7 +17,7 @@ fn generics1() {
         }
 
         fn value(&self) -> &T {
-            todo!("返回 &self.value")
+            &self.value
         }
     }
 
@@ -35,9 +32,9 @@ fn generics1() {
 #[ignore]
 fn generics2() {
     // I AM NOT DONE
-    // 为 larger 函数添加 trait bound，让它能比较并返回两个值中较大的一个。
-    fn larger<T>(a: T, b: T) -> T {
-        todo!("添加 trait bound 并返回较大的值")
+    // 实现一个泛型函数，要求 T 实现 PartialOrd，返回两个值中较大的一个
+    fn larger<T: PartialOrd>(a: T, b: T) -> T {
+        if a > b { a } else { b }
     }
 
     assert_eq!(larger(3, 5), 5);

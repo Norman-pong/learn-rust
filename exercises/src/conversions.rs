@@ -1,15 +1,14 @@
 // exercises/src/conversions.rs
-// Chapter 23: Type Conversions — rustlings fork
+// Chapter 23: 类型转换 — rustlings fork
 // 深做章节
 
-// 类型转换包括 AsRef、From、Into、TryFrom。本章要求你实现这些 trait
-// 以完成自定义类型之间的安全转换。
+// 每题含 `// I AM NOT DONE` 注释，运行前删除即可
 
 #[test]
 #[ignore]
+    // I AM NOT DONE
 fn conversions1() {
     // I AM NOT DONE
-    // 使用 AsRef<str> 让函数接受 &String 和 &str。
     fn print_length<S: AsRef<str>>(s: S) {
         println!("{}", s.as_ref().len());
     }
@@ -20,20 +19,23 @@ fn conversions1() {
     print_length(&owned);
     print_length(borrowed);
 
-    // I AM NOT DONE: 原代码 owned.as_ref() 因 AsRef 目标类型不明确而编译失败
-    assert_eq!(AsRef::<str>::as_ref(&owned), "Rust");
+    // String 实现 AsRef<str>，as_ref() 返回 "Rust"。
+    // 显式使用 UFCS 指定 AsRef<str>，避免多 impl 歧义。
+    assert_eq!(<String as AsRef<str>>::as_ref(&owned), "Rust");
 }
 
+// Exercise conversions2
+// 为自定义类型实现 From<&str> 和 From<String>。
 #[test]
 #[ignore]
-fn conversions2() {
     // I AM NOT DONE
-    // 为自定义类型实现 From，支持 From<&str> 和 From<String>。
+fn conversions2() {
     struct Person {
         name: String,
     }
 
     impl From<&str> for Person {
+    // I AM NOT DONE
         fn from(name: &str) -> Self {
             Person {
                 name: name.to_string(),
@@ -42,8 +44,10 @@ fn conversions2() {
     }
 
     impl From<String> for Person {
+    // I AM NOT DONE
         fn from(name: String) -> Self {
-            todo!("实现 String -> Person")
+            // String 直接作为 name，避免再次复制。
+            Person { name }
         }
     }
 
@@ -54,11 +58,12 @@ fn conversions2() {
     assert_eq!(p2.name, "Bob");
 }
 
+// Exercise conversions3
+// 实现 TryFrom<i64>，拒绝负数并返回自定义错误。
 #[test]
 #[ignore]
-fn conversions3() {
     // I AM NOT DONE
-    // 实现 TryFrom<i64>，拒绝负数并返回一个自定义错误。
+fn conversions3() {
     #[derive(Debug, PartialEq)]
     struct PositiveU32(u32);
 
@@ -69,6 +74,7 @@ fn conversions3() {
     }
 
     impl std::fmt::Display for PositiveError {
+    // I AM NOT DONE
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             match self {
                 PositiveError::Negative => write!(f, "value is negative"),
@@ -81,9 +87,16 @@ fn conversions3() {
 
     impl std::convert::TryFrom<i64> for PositiveU32 {
         type Error = PositiveError;
+    // I AM NOT DONE
 
         fn try_from(value: i64) -> Result<Self, Self::Error> {
-            todo!("实现转换：负数返回 Negative，超过 u32 范围返回 TooLarge")
+            if value < 0 {
+                Err(PositiveError::Negative)
+            } else if value > u32::MAX as i64 {
+                Err(PositiveError::TooLarge)
+            } else {
+                Ok(PositiveU32(value as u32))
+            }
         }
     }
 

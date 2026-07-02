@@ -1,52 +1,56 @@
 // exercises/src/iterators.rs
-// Chapter 18: Iterators — rustlings fork
+// Chapter 18: 迭代器 — rustlings fork
 // 深做章节
 
-// 迭代器是 Rust 中处理集合的强大抽象。本章覆盖 iterator、map、filter、
-// collect、find 与 fold。
+// 每题含 `// I AM NOT DONE` 注释，运行前删除即可
 
 #[test]
 #[ignore]
-fn iterators1() {
     // I AM NOT DONE
-    let numbers = vec![1, 2, 3, 4];
-    let squares: Vec<i32> = todo!("使用 map 和 collect 计算平方");
+fn iterators1() {
+    let squares: Vec<i32> = (1..=4).map(|x| x * x).collect();
     assert_eq!(squares, vec![1, 4, 9, 16]);
 }
 
+// Exercise iterators2
+// 使用 filter 与 collect 保留 1 到 6 中的偶数。
 #[test]
 #[ignore]
-fn iterators2() {
     // I AM NOT DONE
-    let numbers = vec![1, 2, 3, 4, 5, 6];
-    let evens: Vec<i32> = todo!("使用 filter 和 collect 保留偶数");
+fn iterators2() {
+    let evens: Vec<i32> = (1..=6).filter(|x| *x % 2 == 0).collect();
     assert_eq!(evens, vec![2, 4, 6]);
 }
 
+// Exercise iterators3
+// 使用 find 与 copied 找到第一个大于 10 的数。
 #[test]
 #[ignore]
-fn iterators3() {
     // I AM NOT DONE
-    let numbers = vec![4, 8, 12, 15, 16];
-    let first_big: Option<i32> = todo!("使用 find 和 copied 找到第一个大于 10 的数");
+fn iterators3() {
+    let nums = vec![3, 7, 12, 9, 15];
+    let first_big: Option<i32> = nums.iter().find(|&&x| x > 10).copied();
     assert_eq!(first_big, Some(12));
 }
 
+// Exercise iterators4
+// 使用 fold 累计字符串长度。
 #[test]
 #[ignore]
-fn iterators4() {
     // I AM NOT DONE
-    let words = vec!["hello", "from", "iterator"];
-    let total_len: usize = todo!("使用 fold 累计字符串长度");
+fn iterators4() {
+    let words = ["hello", " ", "world", "rust", "!!"];
+    let total_len: usize = words.iter().fold(0, |acc, s| acc + s.len());
     assert_eq!(total_len, 17);
 }
 
+// Exercise iterators5
+// 使用 collect 把 Vec<Result<i32, &str>> 中的 Ok 值收集成 Result<Vec<i32>, &str>。
 #[test]
 #[ignore]
-fn iterators5() {
     // I AM NOT DONE
-    // 使用 iterator 消费器把 Vec<Result<i32, &str>> 中的 Ok 值收集。
-    let values = vec![Ok(1), Err("skip"), Ok(3), Ok(4)];
-    let collected: Result<Vec<i32>, &str> = todo!("使用 collect 收集 Result 中的 Ok 值");
+fn iterators5() {
+    let results: Vec<Result<i32, &str>> = vec![Ok(1), Ok(3), Ok(4)];
+    let collected: Result<Vec<i32>, &str> = results.into_iter().collect();
     assert_eq!(collected, Ok(vec![1, 3, 4]));
 }

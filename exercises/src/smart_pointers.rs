@@ -1,14 +1,13 @@
 // exercises/src/smart_pointers.rs
-// Chapter 19: Smart Pointers — rustlings fork
+// Chapter 19: 智能指针 — rustlings fork
 // 深做章节
 
-// 智能指针在堆上管理数据并提供额外语义。本章覆盖 Box、Rc 和 RefCell。
+// 每题含 `// I AM NOT DONE` 注释，运行前删除即可
 
 #[test]
 #[ignore]
-fn smart_pointers1() {
     // I AM NOT DONE
-    // 使用 Box 在堆上分配一个递归类型：链表节点。
+fn smart_pointers1() {
     enum List {
         Cons(i32, Box<List>),
         Nil,
@@ -26,34 +25,35 @@ fn smart_pointers1() {
         current = next;
     }
 
-    let expected: i32 = todo!("计算链表元素之和");
-    assert_eq!(sum, expected);
+    assert_eq!(sum, 6);
 }
 
+// Exercise smart_pointers2
+// 使用 Rc 共享数据，并验证其强引用计数。
 #[test]
 #[ignore]
-fn smart_pointers2() {
     // I AM NOT DONE
-    // 使用 Rc 让多个所有者共享同一份数据。
+fn smart_pointers2() {
     use std::rc::Rc;
 
     let data = Rc::new(String::from("shared"));
-    let _a = Rc::clone(&data);
+    let a = Rc::clone(&data);
     let _b = Rc::clone(&data);
     let _c = Rc::clone(&data);
 
-    let expected: usize = todo!("引用计数应该是多少？");
-    assert_eq!(Rc::strong_count(&data), expected);
+    // data + a + b + c 共 4 个强引用
+    assert_eq!(Rc::strong_count(&data), 4);
 
-    drop(_a);
+    drop(a);
     assert_eq!(Rc::strong_count(&data), 3);
 }
 
+// Exercise smart_pointers3
+// 使用 RefCell 在不可变引用内部修改数据。
 #[test]
 #[ignore]
-fn smart_pointers3() {
     // I AM NOT DONE
-    // 使用 RefCell 在不可变引用内部修改数据。
+fn smart_pointers3() {
     use std::cell::RefCell;
 
     let value = RefCell::new(0);
@@ -68,6 +68,6 @@ fn smart_pointers3() {
         *borrow *= 2;
     }
 
-    let actual: i32 = todo!("读取 RefCell 内部的值");
-    assert_eq!(actual, 10);
+    // 0 + 5 = 5; 5 * 2 = 10
+    assert_eq!(*value.borrow(), 10);
 }
