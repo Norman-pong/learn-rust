@@ -18,4 +18,31 @@
 
 ---
 
-## (后续按日期追加)
+
+## 待填：CLI 替代目标选定
+
+> 模板：在日常工作中留意以下信号，选中一个脚本后填写。
+
+| 候选脚本 | 频率 | 痛点 | 是否选定 |
+|---------|------|------|---------|
+| （例：日志分析脚本） | 每天 3 次 | Shell 太慢 | ⬜ |
+| （例：文件批处理） | 每周 1 次 | 边界情况难处理 | ⬜ |
+
+**选定结果**：（脚本名 / 原语言 / 替代后预期收益）
+
+---
+
+## 待填：02-component 方向评估
+
+> 模板：确认现 server 语言后，按决策框架得出结论。
+
+```
+Server 语言是 ______?
+  Node.js  → napi-rs native add-on
+  Python   → PyO3 import 库或独立 microservice
+  Go       → FFI 调用或独立 microservice (gRPC)
+  Rust     → cargo workspace 子 crate
+  未明     → 独立 microservice (HTTP/JSON)
+```
+
+**结论**：（一行决策 + 理由）
