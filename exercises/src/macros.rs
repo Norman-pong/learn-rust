@@ -8,9 +8,8 @@
 #[ignore]
     // I AM NOT DONE
 fn macros1() {
-    let v = vec![1, 2, 3];
-
-    assert_eq!(v, vec![1, 2, 3]);
+    // I AM NOT DONE
+    todo!();
 }
 
 // Exercise macros2
@@ -19,12 +18,9 @@ fn macros1() {
 #[ignore]
     // I AM NOT DONE
 fn macros2() {
-    let name = "Rust";
-    let age = 18usize;
 
-    let info = format!("{name} is {age} years old");
-
-    assert_eq!(info, "Rust is 18 years old");
+    // I AM NOT DONE
+    todo!();
 }
 
 // Exercise macros3
@@ -33,21 +29,12 @@ fn macros2() {
 #[ignore]
     // I AM NOT DONE
 fn macros3() {
-    macro_rules! count_args {
-        () => { 0 };
-        ($($x:expr),+ $(,)?) => { {
-            let mut count = 0;
-            $(
-                let _ = $x;
-                count += 1;
-            )+
-            count
-        } };
-    }
 
-    assert_eq!(count_args!(), 0);
-    assert_eq!(count_args!(1, 2, 3), 3);
-    assert_eq!(count_args!("a", "b", "c", "d"), 4);
+
+
+
+    // I AM NOT DONE
+    todo!();
 }
 
 // Exercise macros4
@@ -56,18 +43,19 @@ fn macros3() {
 #[ignore]
     // I AM NOT DONE
 fn macros4() {
-    macro_rules! repeat {
-        ($value:expr; $count:expr) => {
-            {
-                let mut v = Vec::new();
-                for _ in 0..$count {
-                    v.push($value);
-                }
-                v
-            }
-        };
-    }
 
-    let v = repeat!(7; 5);
-    assert_eq!(v, vec![7, 7, 7, 7, 7]);
+
+
+
+
+
+
+
+
+
+
+
+
+    // I AM NOT DONE
+    todo!();
 }

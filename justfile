@@ -9,6 +9,11 @@ serve:
 test:
     cd exercises && cargo test -- --ignored
 
+# 重置练习为未完成状态（可选参数：<chapter>）
+reset CHAPTER="":
+    @git stash push exercises/src/ -m "pre-reset backup"
+    @scripts/reset.py {{CHAPTER}}
+
 # 清理构建产物
 clean:
     cargo clean
@@ -25,3 +30,7 @@ weekly:
     @echo "## 下周计划" >> notes/weekly/$(date +%Y-W%V).md
     @echo "" >> notes/weekly/$(date +%Y-W%V).md
     @echo "模板已生成: notes/weekly/$(date +%Y-W%V).md"
+
+# 检查文档：扫描 rust,should-compile 代码块并输出报告
+check-docs:
+    scripts/check-docs.sh

@@ -9,12 +9,7 @@
     // I AM NOT DONE
 fn clippy1() {
     // I AM NOT DONE
-    fn is_some(x: Option<i32>) -> bool {
-        x.is_some()
-    }
-
-    assert!(is_some(Some(42)));
-    assert!(!is_some(None));
+    todo!();
 }
 
 // Exercise clippy2
@@ -23,7 +18,11 @@ fn clippy1() {
 #[ignore]
     // I AM NOT DONE
 fn clippy2() {
-    let s = String::from("hello");
 
-    assert_eq!(s, "hello");
+
+
+
+
+    // I AM NOT DONE
+    todo!();
 }

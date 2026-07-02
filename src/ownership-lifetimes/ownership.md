@@ -168,4 +168,4 @@ function givesOwnership(): string {
 - → [引用与借用](reference-borrow.md) — 不转移所有权的情况下临时使用值
 - → [生命周期基础](lifetime-basic.md) — 借用必须保证引用有效
 - → [智能指针](smart-pointer.md) — `Rc`/`Arc` 处理多所有者，`Box` 处理堆分配
-- → [变量与绑定](variable.md) — `let` 绑定是所有权的起点
+- → [变量与绑定](../basic/variable.md) — `let` 绑定是所有权的起点

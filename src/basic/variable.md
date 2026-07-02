@@ -132,4 +132,4 @@ console.log(`${a}, ${b}, ${c}, ${x}, ${y}, ${first}`);
 
 - → [类型系统](type.md) — `let` 的类型推断与显式标注
 - → [函数](function.md) — 函数参数中的 `mut` 绑定
-- → [所有权模型](ownership-lifetimes/ownership.md) — `let` 绑定是所有权系统的起点
+- → [所有权模型](../ownership-lifetimes/ownership.md) — `let` 绑定是所有权系统的起点

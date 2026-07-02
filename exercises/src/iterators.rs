@@ -8,8 +8,8 @@
 #[ignore]
     // I AM NOT DONE
 fn iterators1() {
-    let squares: Vec<i32> = (1..=4).map(|x| x * x).collect();
-    assert_eq!(squares, vec![1, 4, 9, 16]);
+    // I AM NOT DONE
+    todo!();
 }
 
 // Exercise iterators2
@@ -18,8 +18,8 @@ fn iterators1() {
 #[ignore]
     // I AM NOT DONE
 fn iterators2() {
-    let evens: Vec<i32> = (1..=6).filter(|x| *x % 2 == 0).collect();
-    assert_eq!(evens, vec![2, 4, 6]);
+    // I AM NOT DONE
+    todo!();
 }
 
 // Exercise iterators3
@@ -28,9 +28,8 @@ fn iterators2() {
 #[ignore]
     // I AM NOT DONE
 fn iterators3() {
-    let nums = vec![3, 7, 12, 9, 15];
-    let first_big: Option<i32> = nums.iter().find(|&&x| x > 10).copied();
-    assert_eq!(first_big, Some(12));
+    // I AM NOT DONE
+    todo!();
 }
 
 // Exercise iterators4
@@ -39,9 +38,9 @@ fn iterators3() {
 #[ignore]
     // I AM NOT DONE
 fn iterators4() {
-    let words = ["hello", " ", "world", "rust", "!!"];
-    let total_len: usize = words.iter().fold(0, |acc, s| acc + s.len());
-    assert_eq!(total_len, 17);
+
+    // I AM NOT DONE
+    todo!();
 }
 
 // Exercise iterators5
@@ -50,7 +49,7 @@ fn iterators4() {
 #[ignore]
     // I AM NOT DONE
 fn iterators5() {
-    let results: Vec<Result<i32, &str>> = vec![Ok(1), Ok(3), Ok(4)];
-    let collected: Result<Vec<i32>, &str> = results.into_iter().collect();
-    assert_eq!(collected, Ok(vec![1, 3, 4]));
+
+    // I AM NOT DONE
+    todo!();
 }

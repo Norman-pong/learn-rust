@@ -8,15 +8,8 @@
 #[ignore]
     // I AM NOT DONE
 fn options1() {
-    let maybe_number: Option<u32> = Some(42);
-
-    let maybe_string: Option<String> = maybe_number.map(|n| n.to_string());
-
-    assert_eq!(maybe_string, Some("42".to_string()));
-
-    let nothing: Option<u32> = None;
-    let nothing_string: Option<String> = nothing.map(|n| n.to_string());
-    assert_eq!(nothing_string, None);
+    // I AM NOT DONE
+    todo!();
 }
 
 // Exercise options2
@@ -25,16 +18,15 @@ fn options1() {
 #[ignore]
     // I AM NOT DONE
 fn options2() {
-    let input = "123";
-    let bad_input = "not a number";
+
+
+
+
+
+
+
     // I AM NOT DONE
-
-    fn parse_or_zero(s: &str) -> u32 {
-        s.parse::<u32>().unwrap_or_default()
-    }
-
-    assert_eq!(parse_or_zero(input), 123);
-    assert_eq!(parse_or_zero(bad_input), 0);
+    todo!();
 }
 
 // Exercise options3
@@ -43,13 +35,14 @@ fn options2() {
 #[ignore]
     // I AM NOT DONE
 fn options3() {
-    let numbers: Vec<Option<u32>> = vec![Some(1), Some(3), Some(5), Some(9), Some(12), None];
 
-    let descriptions: Vec<String> = numbers
-        .iter()
-        .filter_map(|opt| opt.filter(|n| n % 3 == 0))
-        .map(|n| format!("divisible by 3: {}", n))
-        .collect();
 
-    assert_eq!(descriptions, vec!["divisible by 3: 3", "divisible by 3: 9", "divisible by 3: 12"]);
+
+
+
+
+
+
+    // I AM NOT DONE
+    todo!();
 }

@@ -15,10 +15,7 @@ mod my_module {
 #[ignore]
 fn modules1() {
     // I AM NOT DONE
-
-    // 请使 my_module::private_function 在模块外可见
-    // 原错误: private_function is private
-    assert_eq!(my_module::private_function(), "private");
+    todo!();
 }
 
 mod parent_module {
@@ -32,11 +29,11 @@ mod parent_module {
 #[test]
 #[ignore]
 fn modules2() {
-    // I AM NOT DONE
 
-    // 使用 use 语句简化路径
-    use parent_module::child::answer;
-    assert_eq!(answer(), 42);
+
+
+    // I AM NOT DONE
+    todo!();
 }
 
 // 同一个模块里，子项可以直接使用兄弟项，不需要前缀；修复调用路径
@@ -56,7 +53,9 @@ mod sibling_b {
 #[test]
 #[ignore]
 fn modules3() {
-    // I AM NOT DONE
 
-    assert_eq!(sibling_b::call(), "hello");
+
+
+    // I AM NOT DONE
+    todo!();
 }
