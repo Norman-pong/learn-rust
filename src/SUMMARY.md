@@ -10,6 +10,8 @@
 - [函数](basic/function.md)
 - [Trait 与泛型](basic/trait-generic.md)
 - [错误处理](basic/error.md)
+- [闭包](basic/closure.md)
+- [模式匹配](basic/pattern-matching.md)
 
 # 所有权与生命周期
 
@@ -34,3 +36,4 @@
 # 编译错误实战
 
 - [生命周期错误](compiler-pitfalls/lifetime-theme/index.md)
+- [Move 语义错误](compiler-pitfalls/move-theme/index.md)
