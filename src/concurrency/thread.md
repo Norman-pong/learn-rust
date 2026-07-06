@@ -9,7 +9,7 @@
 | 线程模型 | 1:1 系统线程 (`std::thread::spawn`) | 单线程事件循环 + Worker Threads |
 | 数据共享 | 所有权模型保证线程安全（编译期） | 结构化克隆或 SharedArrayBuffer |
 | 同步 | Mutex/Arc/Channel | Atomics/MessageChannel |
-| 返回值 | `JoinHandle<T>.join()` 返回 `Result<T>` | `worker.postMessage()` + `on('message')` |
+| 返回值 | `JoinHandle&lt;T&gt;.join()` 返回 `Result&lt;T&gt;` |
 
 **核心差异**：Rust 的类型系统在编译期检查线程安全——`Send` 和 `Sync` trait 决定类型能否在线程间传递。
 
@@ -60,7 +60,7 @@ worker.postMessage(structuredClone(data));
 console.log(data);  // ✅ 仍可用
 ```
 
-### Arc<Mutex<T>> — 多线程共享可变数据
+### `Arc&lt;Mutex&lt;T&gt;&gt;` — 多线程共享可变数据
 
 ```rust
 use std::sync::{Arc, Mutex};
@@ -99,7 +99,7 @@ const counter = new Int32Array(buffer);
 | `Send` | 类型的所有权可以在线程间传递 | `i32`, `String`, `Arc<T>` 是 Send；`Rc<T>` 不是 |
 | `Sync` | 类型的引用可以在线程间共享 | `Mutex<T>` 是 Sync；`RefCell<T>` 不是 |
 
-> 详细参见 [Send 与 Sync](../concurrency/send-sync.md)
+> 详细参见 [Send 与 Sync](send-sync.md)
 
 ## 容易踩的坑
 

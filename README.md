@@ -6,19 +6,19 @@
 
 ```mermaid
 graph LR
-    SRC[内容层<br/>src/ 25 篇 TLDR + 深挖] --> MDBOOK[mdbook serve]
-    EX[练习层<br/>exercises/ 24 章] --> CARGO[cargo test]
+    SRC[内容层<br/>src/ 39 篇(23 内容 + 16 stub)] --> MDBOOK[mdbook serve]
+    EX[练习层<br/>exercises/ 37 题] --> CARGO[cargo test]
     PROJ[项目层<br/>projects/01-tools/] --> CARGO
-    NOTES[笔记层<br/>notes/weekly/ 6 篇周报] --> MDBOOK
+    NOTES[笔记层<br/>notes/weekly/ 7 篇周报 W27-W33] --> MDBOOK
 ```
 
 | 层级 | 说明 | 规模 |
 |------|------|------|
-| **内容** | `src/` — basic / ownership-lifetimes / concurrency / deep-dives / compiler-pitfalls | 25 篇 |
-| **练习** | `exercises/` — rustlings 24 章 fork，`#[test] #[ignore]` 格式 | ~100 题 |
-| **答案** | `solutions/` — 不含 Cargo.toml，编译隔离 | 23 文件 |
+| **内容** | `src/` — basic / ownership-lifetimes / concurrency / deep-dives / compiler-pitfalls | 39 篇(含 16 stub) |
+| **练习** | `exercises/` — rustlings fork,25 章 37 个 .rs 文件，`#[test] #[ignore]` 格式 | 37 题 |
+| **答案** | `solutions/` — 不含 Cargo.toml，编译隔离 | 24 文件 |
 | **项目** | `projects/01-tools/` — sunniwell 工作流脚本 Rust 化 | 1 CLI crate |
-| **笔记** | `notes/` — 周报 W27-W32 + code-readings + patterns | 6 篇周报 |
+| **笔记** | `notes/` — 周报 W27-W33 + code-readings + patterns | 7 篇周报 |
 
 ## 快速开始
 
@@ -43,11 +43,12 @@ just weekly
 
 | 模块 | 亮点 |
 |------|------|
-| `basic/` | 6 篇 TLDR — Rust vs JS/TS 对比表风格 |
-| `ownership-lifetimes/` | 所有权三件套 + 生命周期 + 智能指针 |
-| `concurrency/` | 线程 / async-await / Tokio 入门 |
-| `compiler-pitfalls/` | 5 个真实生命周期编译错误案例（错码→报错→解释→修复） |
-| `deep-dives/` | too-many-lists 链表翻译 + Crust of Rust 笔记 |
+| `basic/` | 11 篇 TLDR(8 实写 + 3 stub) — Rust vs JS/TS 对比表风格 |
+| `ownership-lifetimes/` | 所有权三件套 + 生命周期 + 智能指针(+2 stub) |
+| `concurrency/` | 线程 / async-await / Tokio 入门(+3 stub) |
+| `compiler-pitfalls/` | 10 个真实生命周期编译错误案例(错码→报错→解释→修复, move + lifetime 各 5) |
+| `deep-dives/` | too-many-lists 链表翻译(6 章 2 实写 + 4 stub) + Crust of Rust 笔记 |
+| `profiling/` | Miri / 内存布局 / 性能调优(v1.1 计划,3 stub) |
 
 ## 仓库哲学
 
