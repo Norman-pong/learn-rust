@@ -5,3 +5,6 @@ edition = "2024"
 description = "rustlings-style 练习（forked from rust-lang/rustlings）"
 
 [dependencies]
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }

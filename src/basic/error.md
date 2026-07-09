@@ -40,11 +40,11 @@ fn main() {
 ```
 
 ```typescript
-import * as fs from "node:fs";
+import { readFileSync } from "node:fs";
 
 function readFile(path: string): string {
     try {
-        return fs.readFileSync(path, "utf-8");
+        const content = readFileSync(path, "utf-8");
     } catch (e) {
         throw new Error(`Failed to read ${path}: ${String(e)}`);
     }
@@ -178,10 +178,7 @@ use anyhow::{Context, Result};
 
 fn load_config() -> Result<String> {
     std::fs::read_to_string("config.toml")
-        .context("无法读取配置文件")?;
-
-    // 或者用 bail! 提前返回错误
-    // anyhow::bail!("config not found");
+        .context("无法读取配置文件")
 }
 
 fn main() -> Result<()> {
@@ -192,6 +189,8 @@ fn main() -> Result<()> {
 ```
 
 ```typescript
+import { readFileSync } from "node:fs";
+
 function loadConfig(): string {
     try {
         return readFileSync("config.toml", "utf-8");
@@ -264,10 +263,10 @@ function main() {
 ## 容易踩的坑
 
 1. **忽略 `Result`**——Rust 会 warn（`#[must_use]`），但末尾 `;` 可以吞掉 `Result`，使其不参与返回值。
-2. **`Box<dyn Error>` 丢失类型信息**——调用者无法 match 具体错误类型，应用层可用，库代码应避免。
+2. **`Box<dyn Error>` 丢失类型信息**——调用者无法直接通过模式匹配（match）区分具体错误类型，需要通过 `.downcast_ref()` 恢复；应用层可用，库代码应避免。
 3. **`?` 的类型转换**——`?` 自动调用 `.into()`，需要源错误类型实现 `From` trait 或 `Into` 目标错误。
-4. **`main` 函数返回 `Result`**——`fn main() -> Result<(), Box<dyn Error>>` 可以直接返回错误，失败时打印并返回非零退出码。
-5. **`unwrap` 在生产代码中**——`unwrap` 等于隐式 panic，除非是测试或确实不可能发生，应改用 `?` 或 `expect("为什么这里不会失败")`。
+4. **`main` 函数返回 `Result`**——`fn main() -> Result<(), Box<dyn std::error::Error>>` 可以直接返回错误，失败时打印并返回非零退出码。
+5. **`unwrap` 在生产代码中**——`unwrap` 等于隐式 panic，除非是测试或确实不可能发生，应改用 `?` 或 `expect("config 文件在构建时已确保存在")`。
 
 ## 交叉链接
 

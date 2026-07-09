@@ -41,6 +41,10 @@
 - [Crust of Rust 笔记](deep-dives/crust-of-rust-notes.md)
 - [链表实现 · 第一章](deep-dives/linked-lists/first.md)
 - [链表实现 · 第二章](deep-dives/linked-lists/second.md)
+- [链表实现 · 第三章](deep-dives/linked-lists/third.md)
+- [链表实现 · 第四章](deep-dives/linked-lists/fourth.md)
+- [链表实现 · 第五章](deep-dives/linked-lists/fifth.md)
+- [链表实现 · 第六章](deep-dives/linked-lists/sixth.md)
 
 # 编译错误实战
 
@@ -55,9 +59,4 @@
 
 # v1.1 计划（尚未撰写）
 
-> 以下链表实现章节计划后续翻译。
-
-- [链表实现 · 第三章 (stub)](deep-dives/linked-lists/third.md)
-- [链表实现 · 第四章 (stub)](deep-dives/linked-lists/fourth.md)
-- [链表实现 · 第五章 (stub)](deep-dives/linked-lists/fifth.md)
-- [链表实现 · 第六章 (stub)](deep-dives/linked-lists/sixth.md)
+> 以下章节计划后续翻译。

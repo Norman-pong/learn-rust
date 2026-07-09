@@ -114,7 +114,7 @@ fn main() {
 ```
 
 ```typescript
-function largest<T extends { valueOf(): number }>(list: T[]): T {
+function largest(list: number[]): number {
     let max = list[0];
     for (const item of list) {
         if (item > max) {
@@ -163,7 +163,7 @@ function main() {
 
 ## 容易踩的坑
 
-1. **末尾少分号 ≠ 多 return**——`fn f() -> i32 { 1 + 2; }` 返回 `()`，因为分号把表达式变成语句；正确写法是 `1 + 2` 或 `return 1 + 2;`。
+1. **末尾分号吞掉返回值**——`fn f() { 1 + 2; }` 返回 `()`（表达式结果被丢弃）；若声明了 `-> i32` 则编译失败（类型不匹配）。正确写法：去掉分号 `1 + 2` 或显式 `return 1 + 2;`。
 2. **函数参数默认不可变**——`fn change(s: String)` 不能修改 `s`，需要 `fn change(mut s: String)` 或 `fn change(s: &mut String)`。
 3. **返回值转移所有权**——`fn create() -> String { String::from("hi") }` 返回后调用者拥有该字符串。
 4. **高阶函数 trait 选择**——`Fn` 只读捕获，`FnMut` 可变捕获，`FnOnce` 消费所有权；选错会导致编译失败。

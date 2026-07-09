@@ -94,16 +94,16 @@ fn main() {
 ### Barrier：多线程同步点
 
 ```rust
-use std::sync::Barrier;
+use std::sync::{Arc, Barrier};
 use std::thread;
 
 fn main() {
     let n = 3;
-    let barrier = Barrier::new(n);
+    let barrier = Arc::new(Barrier::new(n));
     let mut handles = vec![];
 
     for i in 0..n {
-        let barrier = barrier.clone();
+        let barrier = Arc::clone(&barrier);
         handles.push(thread::spawn(move || {
             println!("thread {i} before barrier");
             barrier.wait();

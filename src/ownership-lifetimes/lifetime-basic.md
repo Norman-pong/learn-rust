@@ -58,7 +58,7 @@ struct Excerpt<'a> {
 fn main() {
     let novel = String::from("Call me Ishmael...");
     let excerpt = Excerpt {
-        part: &novel[..5],
+        part: &novel[..14], // 取前 14 字节，注意切片是字节索引而非字符索引
     };
     println!("{}", excerpt.part);
     // excerpt 必须在 novel 之前 drop
@@ -82,20 +82,26 @@ function main() {
 
 ```rust
 // 规则 1：每个引用参数都有各自的生命周期
-fn foo(x: &str, y: &str)            // 等价于
+fn foo(_x: &str, _y: &str) {}     // 等价于
 // fn foo<'a, 'b>(x: &'a str, y: &'b str)
 
 // 规则 2：如果只有一个输入生命周期，它被赋给所有输出生命周期
-fn first_word(s: &str) -> &str      // 等价于
+fn first_word(s: &str) -> &str {    // 等价于
 // fn first_word<'a>(s: &'a str) -> &'a str
+    s
+}
 
 // 规则 3：如果 &self 或 &mut self，self 的生命周期赋给所有输出
-struct Foo;
+struct Foo {
+    inner: String,
+}
 impl Foo {
-    fn bar(&self, x: &str) -> &str   // 等价于
-    // fn bar<'a, 'b>(&'a self, x: &'b str) -> &'a str
+    fn bar(&self, _x: &str) -> &str   // 等价于
+    // fn bar<'a, 'b>(&'a self, _x: &'b str) -> &'a str
+    //               ↑ 返回类型取 self 的 'a；若返回 _x 这类 &'b str，
+    //                 编译器会额外推导出 'b: 'a（子类型关系）
     {
-        x
+        &self.inner
     }
 }
 
@@ -116,12 +122,13 @@ class Foo {
 ### 生命周期约束
 
 ```rust
-fn copy_if_longer<'a, 'b>(s: &'a str, buffer: &'b mut String) -> bool
+// 将 s 的切片存入 buffer 中 buffer 生命周期覆盖的位置才需要 'a: 'b
+fn store_long_slice<'a, 'b>(s: &'a str, holder: &'b mut Vec<&'a str>) -> bool
 where
-    'a: 'b, // s 的生命周期至少和 buffer 一样长
+    'a: 'b, // 存入 holder 的引用必须至少和 holder 借用的存活期一样长
 {
     if s.len() > 10 {
-        buffer.push_str(s);
+        holder.push(s);
         true
     } else {
         false
@@ -130,16 +137,16 @@ where
 
 fn main() {
     let s = String::from("hello world");
-    let mut buffer = String::new();
-    copy_if_longer(&s, &mut buffer);
-    println!("{buffer}");
+    let mut holder: Vec<&str> = Vec::new();
+    store_long_slice(&s, &mut holder);
+    println!("{:?}", holder);
 }
 ```
 
 ```typescript
-function copyIfLonger(s: string, buffer: string): boolean {
+function storeLongSlice(s: string, holder: string[]): boolean {
     if (s.length > 10) {
-        buffer += s; // 注意：字符串不可变，这里需要重新赋值
+        holder.push(s); // 字符串被复制进数组
         return true;
     }
     return false;
@@ -147,9 +154,9 @@ function copyIfLonger(s: string, buffer: string): boolean {
 
 function main() {
     const s = "hello world";
-    let buffer = "";
-    copyIfLonger(s, buffer); // 不会修改外部 buffer
-    console.log(buffer); // 空
+    const holder: string[] = [];
+    storeLongSlice(s, holder);
+    console.log(holder); // ["hello world"]
 }
 ```
 
@@ -157,8 +164,8 @@ function main() {
 
 1. **生命周期标注是"描述"不是"修改"**——`'a` 不会改变数据存活时间，只是告知编译器引用的有效期约束。
 2. **返回局部引用**——`fn foo() -> &str { let s = "hi"; &s }` ❌，`s` 在函数结束时 drop。
-3. **不同生命周期的引用**——`longest(&s1, &s2)` 中 result 的生命周期 = s1 和 s2 的重叠部分，也就是较短者。
-4. **`'static` 不是万能的**——`&'static str` 表示存活到程序结束，不能随便加；拥有类型 `String` 本身不是 `'static`。
+3. 当两个引用共享同一个生命周期参数时，编译器取其**交集**（较短者）作为有效范围。因此 `longest(&s1, &s2)` 中 `result` 的使用范围不超过 s1 和 s2 中较短者的存活期。
+4. **`'static` 不是万能的**——`&'static str` 表示引用存活到程序结束，不能随便加；拥有类型 `String` 虽然满足 `'static` bound（它不包含任何非 `'static` 的借用引用），但它本身不是引用，无法直接转为 `&'static str`（除非用 `Box::leak` 等刻意泄漏内存）。
 5. **闭包捕获引用**——闭包捕获引用时也会涉及生命周期推导，返回闭包时要小心捕获引用的生命周期。
 
 ## 交叉链接

@@ -128,13 +128,14 @@ fn main() {
 
 ### 真实场景：async 块生成的自引用 Future
 
-```rust
+```rust,should-compile
 // async fn 编译后会生成一个自引用状态机
 async fn read_file(path: &str) -> String {
     tokio::fs::read_to_string(path).await.unwrap()
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let fut = read_file("Cargo.toml");
     // fut 内部可能引用自己的缓冲区，因此 tokio::spawn 要求 Future 是 Unpin
     // Pin<Box<dyn Future>> 可以把 !Unpin 的 Future 变成可 spawn

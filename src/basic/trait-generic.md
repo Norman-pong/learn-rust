@@ -35,8 +35,9 @@ struct Article {
 
 impl Summary for Article {
     fn summarize(&self) -> String {
-        let end = self.title.len().min(20);
-        format!("{}...", &self.title[..end])
+        let end = self.title.chars().take(20).count();
+        let byte_end = self.title.char_indices().nth(end).map(|(i, _)| i).unwrap_or(self.title.len());
+        format!("{}...", &self.title[..byte_end])
     }
 }
 
@@ -176,8 +177,8 @@ fn static_dispatch<T: Drawable>(item: &T) {
     item.draw();
 }
 
-// 动态分发：运行时通过 vtable 调用
-fn dynamic_dispatch(item: &dyn Drawable) {
+// 动态分发：运行时通过 vtable 调用，接受拥有所有权的 trait object
+fn dynamic_dispatch(item: Box<dyn Drawable>) {
     item.draw();
 }
 
@@ -186,10 +187,10 @@ fn main() {
     let square = Square;
 
     static_dispatch(&circle);
-    dynamic_dispatch(&square);
+    dynamic_dispatch(Box::new(square));
 
-    // 同类型集合
-    let shapes: Vec<&dyn Drawable> = vec![&circle, &square];
+    // 异构集合（不同类型统一按 trait 处理）
+    let shapes: Vec<Box<dyn Drawable>> = vec![Box::new(Circle), Box::new(Square)];
     for s in shapes {
         s.draw();
     }
@@ -273,9 +274,9 @@ console.log(`${a}, ${b}`);
 
 ## 容易踩的坑
 
-1. **Orphan Rule（孤儿规则）**——不能为外部类型实现外部 trait（`impl Display for Vec<T>` ❌），只能为本地类型实现外部 trait，或为本地类型实现外部 trait。
+1. **Orphan Rule（孤儿规则）**——不能为外部类型实现外部 trait（`impl Display for Vec<T>` ❌），只能为本地类型实现外部 trait，或为外部类型实现本地 trait。
 2. **`impl Trait` 返回类型不透明**——调用者不知道具体类型，不能把返回值赋给具体类型变量，也不能用于关联类型位置。
-3. **`dyn Trait` 有大小限制**——trait object 是 `!Sized`，需要 `Box<dyn Trait>` 或 `&dyn Trait` 才能使用。
+3. **`dyn Trait` 是 `!Sized`**——trait object 编译期大小未知，需要 `Box<dyn Trait>` 或 `&dyn Trait` 才能使用。
 4. **泛型膨胀**——`fn foo<T: Trait>` 为每种 T 生成代码，过多泛型参数会导致二进制变大、编译变慢。
 5. **`Copy` 和 `Drop` 互斥**——一个类型实现了 `Drop`（需要析构），就不能同时实现 `Copy`，因为 Copy 语义与自定义析构冲突。
 

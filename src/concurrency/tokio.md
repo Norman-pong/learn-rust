@@ -14,7 +14,7 @@ JS/TS 的异步基于单线程事件循环（libuv），`Promise`/`async`/`await
 | `tokio::net::TcpListener` | `net.createServer()` |
 | `tokio::sync::mpsc` | `EventEmitter`、自定义 channel 或 `BroadcastChannel` |
 | `tokio::select!` | `Promise.race()` |
-| `tokio::task::JoinHandle` | `Promise`（可被取消、可等待） |
+| `tokio::task::JoinHandle` | `Promise`（**不可**取消，只能等待 settle） |
 | Runtime feature flags | 不需要 feature flags，API 全部内置 |
 
 ## 依赖声明

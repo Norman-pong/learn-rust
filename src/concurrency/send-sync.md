@@ -124,11 +124,11 @@ worker.postMessage(new MyType(), [myType.raw]); // transfer
 
 ```rust
 use std::marker::PhantomData;
-use std::sync::Rc;
+use std::rc::Rc;
 
 struct NotSend<T> {
     value: T,
-    _marker: PhantomData<Rc<()>>, // 让外部类型看起来包含 Rc
+    _marker: PhantomData<Rc<()>>, // 让编译器认为该结构体包含了 Rc
 }
 
 fn assert_send<T: Send>() {}
@@ -149,7 +149,7 @@ fn main() {
 1. **`Rc<T>` 不是 Send**——`Rc` 的引用计数是非原子的，跨线程 move 会导致数据竞争；多线程共享请用 `Arc<T>`。
 2. **`RefCell<T>` 不是 Sync**——它在运行时做借用检查，多个线程同时持有引用会导致未定义行为；多线程共享可变状态用 `Mutex<T>` 或 `RwLock<T>`。
 3. **裸指针默认不是 Send/Sync**——`Box`、`Vec` 等拥有型指针是 Send，但 `*const T` / `*mut T` 默认不是，需要手动 `unsafe impl` 并自担安全责任。
-4. **自定义结构体继承字段的 trait 交集**——一个结构体只有所有字段都 `Send` 且 `Sync` 时，编译器才会自动推导它实现这两个 trait；只要有一个字段不是，整个类型就不是。
+4. **自定义结构体按字段自动推导**——编译器独立判断：`Send` 只看所有字段是否都实现 `Send`，`Sync` 只看所有字段是否都实现 `Sync`；两个 trait 的推导互不影响。只要有一个字段不满足某个 trait，该 trait 就不会被自动实现。例如 `RefCell<i32>` 是 `Send` 但不是 `Sync`，包含它的结构体也是 `Send` 但不是 `Sync`。不要把它理解成“字段 trait 的交集”。
 5. **误用 `unsafe impl Send/Sync`**——手动实现意味着"我比编译器更懂这个类型"；如果内部真的包含 `Rc` 或 `RefCell`，会在运行时产生不可预测的数据竞争。
 
 ## 交叉链接

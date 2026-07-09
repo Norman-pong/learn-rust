@@ -54,19 +54,29 @@ function main() {
 型变回答：如果 `T` 是 `U` 的子类型，那么 `F<T>` 与 `F<U>` 是什么关系？
 
 ```rust
-// &'a T 对 T 是协变的：&'a Cat 可以当成 &'a Animal 使用（Cat 是 Animal 子类型）
-fn accept_animal<'a>(a: &'a Animal) {
+// 定义类型：Animal 是 trait，Cat / Dog 是实现它的具体类型
+trait Animal { fn speak(&self) -> &'static str; }
+struct Cat;
+struct Dog;
+impl Animal for Cat { fn speak(&self) -> &'static str { "meow" } }
+impl Animal for Dog { fn speak(&self) -> &'static str { "woof" } }
+
+// &'a T 对 T 是协变的：&'a Cat 可以当成 &'a dyn Animal 使用
+fn accept_animal<'a>(a: &'a dyn Animal) {
     println!("{}", a.speak());
+}
+
+// &'a mut T 对 T 是不变的：当 T 被实例化为 Cat 后，不能再把 Dog 写入 *a
+fn maybe_replace_with_dog<T: Animal>(_a: &mut T) {
+    // *a = Dog; // 类型错误：T 已固定为 Cat，不能替换为 Dog
 }
 
 fn main() {
     let cat = Cat;
-    accept_animal(&cat); // &'a Cat -> &'a Animal
-}
+    accept_animal(&cat); // ✅ &Cat -> &dyn Animal
 
-// &'a mut T 对 T 是不变的：不能将 &mut Cat 传给 &mut Animal
-fn maybe_replace_with_dog(a: &mut Animal) {
-    *a = Dog; // 如果传入的是 &mut Cat，这里就会破坏类型安全
+    let mut cat = Cat;
+    maybe_replace_with_dog(&mut cat); // T 被实例化为 Cat，不能换成 Dog
 }
 ```
 
@@ -173,7 +183,7 @@ const s = makeSelfRef("pinned");
 
 1. **把生命周期当成运行时代码**：`'a` 只在编译期存在，不会生成任何指令，也不能做运行时判断。
 2. **认为生命周期能延长变量存活**：生命周期只是约束，不能真的让局部变量活更久。
-3. **在返回引用时忘记约束**：`fn get() -> &str` 没有输入生命周期，编译器会推断为 `&'static str`，局部引用会报错。
+3. **在返回引用时忘记约束**：`fn get() -> &str` 没有输入生命周期，编译器会报错 `E0106`（missing lifetime specifier），要求显式标注；如果实际返回的是局部引用，即使标注为 `&'static str` 也无法通过借用检查。
 4. **在 trait 对象里混用生命周期**：`Box<dyn Trait + 'a>` 与 `Box<dyn Trait + 'static>` 是完全不同的类型，需要特别注意。
 5. **滥用 `Pin::get_unchecked_mut`**：只有在确认不会破坏自引用或异步状态机的内部假设时才能用 `unsafe`。
 

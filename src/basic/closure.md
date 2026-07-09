@@ -7,13 +7,13 @@
 | 概念 | Rust | TypeScript |
 |------|------|------------|
 | 语法 | 管道参数 `\|x\| x + 1` | 箭头函数 `(x) => x + 1` |
-| 捕获方式 | 按需要自动借用或移动变量，可由 `move` 强制取得所有权 | 默认按值捕获，但对象/数组引用始终可逃逸；`this` 是词法捕获 |
+| 捕获方式 | 按需要自动借用或移动变量，可由 `move` 强制取得所有权 | 捕获变量绑定（binding），闭包始终能看到变量的最新值；不存在所有权语义，所有引用可自由逃逸 |
 | 可调用 trait | 三套 `Fn` / `FnMut` / `FnOnce` trait 区分调用次数与可变性 | 统一 `Function` 类型，没有“调用会消耗函数”的概念 |
 | 类型推导 | 参数与返回类型通常可推断，但闭包类型是不透明的匿名类型 | 箭头函数类型可被显式写出 `(x: number) => number` |
 | 环境所有权 | `move` 闭包把外部变量所有权移入；普通闭包可能仅借用 | 不存在所有权语义，闭包持有引用或值取决于运行时 |
 | 函数指针 | `fn(i32) -> i32` 只指裸函数，不能捕获环境 | `() =>` 函数与箭头函数没有区分 |
 
-**核心差异**：TypeScript 的函数是值，闭包捕获的是引用或值的副本；Rust 的闭包是一个不透明的匿名结构体，它把捕获的变量当作字段，并自动实现 `Fn`/`FnMut`/`FnOnce` 之一。调用者能否多次调用、能否修改捕获变量，都写在 trait bound 里，编译器据此检查。
+**核心差异**：TypeScript 的函数是值，闭包捕获的是变量绑定；Rust 的闭包是一个不透明的匿名结构体，它把捕获的变量当作字段，并自动实现 `Fn`/`FnMut`/`FnOnce` 之一。调用者能否多次调用、能否修改捕获变量，都写在 trait bound 里，编译器据此检查。
 
 ## 代码对比表
 
@@ -40,13 +40,14 @@ console.log(addTwo(5)); // 7
 ### 捕获环境变量
 
 ```rust
-fn make_greeter(name: String) -> impl FnOnce() -> String {
+fn make_greeter(name: String) -> impl Fn() -> String {
     move || format!("Hello, {name}!")
 }
 
 fn main() {
     let greeter = make_greeter(String::from("Rust"));
     println!("{}", greeter()); // Hello, Rust!
+    println!("{}", greeter()); // 仍可再次调用
 }
 ```
 
@@ -127,9 +128,10 @@ function main() {
 
 ```rust
 fn spawn_worker(name: String) {
-    std::thread::spawn(move || {
+    let handle = std::thread::spawn(move || {
         println!("worker {name} running");
     });
+    handle.join().unwrap(); // 等待线程完成，避免主线程提前退出
 }
 
 fn main() {
@@ -198,7 +200,7 @@ function main() {
 2. **选错 trait bound 会编译失败**——需要修改捕获变量时传 `Fn` 会报错 `cannot borrow data mutably`；只能调用一次的闭包传 `Fn` 会报 `expected a closure that implements FnMut` 或 `FnOnce`。
 3. **move 闭包会转移外部变量所有权**——`move ||` 把变量所有权拿进闭包，之后外部再使用会报 `value used here after move`。
 4. **闭包不能强转成函数指针 `fn`**——`fn(i32) -> i32` 只代表不捕获环境的裸函数，带捕获的闭包给它会报类型不匹配。
-5. **返回闭包通常需要 `move` / `impl Trait`**——`fn make() -> impl Fn(i32) -> i32 { \|x\| x + n }` 如果不写 `move`，捕获的 `n` 会随函数返回被释放，导致悬垂引用。
+5. **返回闭包通常需要 `move` / `impl Trait`**——`fn make() -> impl Fn(i32) -> i32 { |x| x + n }` 如果不写 `move`，闭包默认借用 `n`，函数返回时 `n` 所在栈帧被回收，闭包持有的引用指向已释放内存，导致悬垂引用。
 
 ## 交叉链接
 

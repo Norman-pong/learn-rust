@@ -108,6 +108,7 @@ function main() {
 ### impl 与方法
 
 ```rust
+#[derive(Debug)]
 struct Rect {
     width: u32,
     height: u32,
