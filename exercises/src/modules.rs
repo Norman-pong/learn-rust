@@ -4,6 +4,8 @@
 
 // 每题含 `// I AM NOT DONE` 注释，运行前删除即可
 
+#![allow(dead_code)]
+
 mod my_module {
     // 默认私有，需要让外部可以访问
     pub fn private_function() -> &'static str {

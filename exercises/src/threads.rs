@@ -4,6 +4,8 @@
 
 // 每题含 `// I AM NOT DONE` 注释，运行前删除即可
 
+#![allow(dead_code, unused_imports)]
+
 use std::sync::{Arc, Mutex};
 use std::thread;
 
