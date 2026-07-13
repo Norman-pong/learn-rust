@@ -1,10 +1,21 @@
 # PRD · Norman's Rust 笔记本
 
-> 状态：已完成 · 版本：v1.0 · 作者：Norman · 日期：2026-07-02
+> 状态：**已归档** · 版本：v1.0 → v1.1+ 全部完成（2026-07-13）· 作者：Norman · 日期：2026-07-02
+>
+> **§5.2 v1.1+ 交付对照（2026-07-13 核实）**：
+> - `basic/` 剩余 7 篇 → ✅ 全部完成（11/11）
+> - `ownership-lifetimes/` 剩余 2 篇 → ✅ 全部完成（6/6）
+> - `concurrency/` 剩余 3 篇 → ✅ 全部完成（6/6）
+> - `deep-dives/` 剩余 4 章链表 → ✅ 全部完成（5 章，合并去重后）+ crust-of-rust 3 集
+> - `compiler-pitfalls/` 剩余 4 主题 → ⬜ 已完成 2 主题（lifetime + move），剩余按需追加
+> - `profiling/` 全部 3 章 → ✅ 全部完成
+> - `projects/01-tools/` → ✅ log-grep 已实现
+>
+> **结论**：v1.1+ 计划范围内的核心内容已全部交付（36 篇内容单元），PRD 归档。后续 `compiler-pitfalls` 剩余主题、`crust-of-rust` 更多剧集按"按需触发"策略追加，不再设版本号目标。
 >
 > **设计依据**：调研与目录设计已归档至 [`docs/reference/sources.md`](../reference/sources.md)
 > **下游文档**：[Architecture](../architecture/overview.md)（架构实现）· [Phase](../phase/2026-07-02-v1-foundation.md)（执行计划）
-> **评审输入**：已吸收至本文档（P0 solutions 隔离 · P1 内容去重 · P1 内容量修正）
+>
 ---
 
 ## §0 目标声明

@@ -138,6 +138,34 @@ main();
 // 输出顺序：microtask -> resumed -> macrotask
 ```
 
+### Stream：异步迭代器
+
+`Stream`（`tokio-stream` crate 或 `futures` crate）是 Future 的"多值版本"——类似异步的 `Iterator`，每次 `poll` 可能产出一个值或结束。在 tokio 1.x 中，stream 支持已拆分到独立的 `tokio-stream` crate。
+
+```rust,ignore
+use tokio_stream::StreamExt;
+
+// 异步读取行流
+async fn process_lines(mut lines: impl tokio_stream::Stream<Item = String>) {
+    while let Some(line) = lines.next().await {
+        println!("{line}");
+    }
+}
+```
+
+```typescript
+// TypeScript 的 AsyncIterable 起同样作用
+async function processLines(lines: AsyncIterable<string>) {
+    for await (const line of lines) {
+        console.log(line);
+    }
+}
+```
+
+> **Stream 不是 std 的正式部分**（截至 Rust 1.80 仍在 `std::stream` 实验特性中），实际使用通过 tokio 或 futures crate。
+>
+> **取消语义**：Rust 的 Future 是惰性的——丢弃（drop）一个未完成的 Future 就等于取消它，不需要 `AbortController`。但这是**协作式取消**：如果 Future 正在执行阻塞操作，drop 只能在下一个 `.await` 点生效。需要在 `select!` 中处理取消时的资源清理。
+
 ## 常见陷阱
 
 1. **Future 是惰性的**——`let f = fetch_data();` 只是构造了一个状态机，不执行任何 IO；必须 `.await` 或 `spawn` 它。

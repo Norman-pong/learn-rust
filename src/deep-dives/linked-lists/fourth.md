@@ -1,6 +1,18 @@
-# 链表实现 · 第四章
+# 链表实现 · 第四章 · 不安全单链表队列
 
-> 译自 [too-many-lists](https://rust-unofficial.github.io/too-many-lists/fifth.html)。本章从单链表栈出发，实现一个**带尾指针的单链表队列**，并首次引入裸指针、Unsafe Rust、`NonNull` 与 `PhantomData` 等概念。译注保留原书的 narrator 口吻。
+> 译自 [too-many-lists](https://rust-unofficial.github.io/too-many-lists/fifth.html) 的 "An Ok Unsafe Singly-Linked Queue"。本章从单链表栈出发，实现一个**带尾指针的单链表队列**，并首次引入裸指针、Unsafe Rust、`NonNull` 与 `PhantomData` 等概念。
+>
+> **译注**：too-many-lists 原书的[第四章](https://rust-unofficial.github.io/too-many-lists/fourth.html)是 `Rc<RefCell<Node>>` 安全双向 Deque，本系列跳过了该章（其核心概念已在第三章 `Rc` 和智能指针章节中覆盖），直接进入 unsafe 队列实现。有兴趣的读者建议对照阅读原书第四章。
+
+## 为什么需要 unsafe
+
+在第三章中，我们用 `Rc` 实现了持久化链表。如果我们继续用 `Rc<RefCell<Node>>` 来实现一个支持双向操作的链表，虽然安全，但代价惨重：
+
+- 每个节点额外携带两个引用计数器和一个借用标志
+- 运行时检查 `borrow_mut()` 是否 panic
+- 代码冗长，难以阅读和维护
+
+> **译注**：`Rc` 和 `RefCell` 适合处理简单场景，但一旦你想隐藏这些运行时开销，它们就会变得笨重。Rust 的设计哲学是：如果安全抽象无法表达某个高效的数据结构，那就用 unsafe 写出一个安全的外壳。原书第四章详细展示了 `Rc<RefCell>` 双向 Deque 的笨重实现，此处直接跳到 unsafe 方案。
 
 ---
 
@@ -196,6 +208,66 @@ struct Node<T> {
 
 ---
 
+## Miri 与 Stacked Borrows
+
+> **译注**：本节涉及 Rust 内存模型的深层细节。如果你只想了解实现，可以跳过；如果你想写出真正正确的 unsafe 代码，这是必修课。
+
+上述代码在常规测试下工作正常，但用 **Miri**（Rust 的内存安全解释器）运行时会报错。问题出在这一行：
+
+```rust
+let raw_tail: *mut _ = &mut *new_tail;
+```
+
+这里我们先创建了一个 `&mut Node<T>`（可变引用），然后把它转成裸指针。在 Rust 的 **Stacked Borrows** 模型中，可变引用具有唯一性：从它创建裸指针后，如果继续使用原始引用或 `Box`，就可能违反 aliasing 规则。
+
+正确的写法是避免通过引用中转，直接用 `Box::into_raw`：
+
+```rust
+pub fn push(&mut self, elem: T) {
+    let new_tail = Box::new(Node {
+        elem,
+        next: ptr::null_mut(),
+    });
+
+    let raw_tail = Box::into_raw(new_tail);  // Box -> *mut，不 drop
+
+    if !self.tail.is_null() {
+        unsafe {
+            (*self.tail).next = raw_tail;
+        }
+    } else {
+        self.head = raw_tail;
+    }
+
+    self.tail = raw_tail;
+}
+```
+
+等等，这样 `head` 和 `tail` 都变成了裸指针？那 `pop` 怎么把 `Box` 拿回来？
+
+答案是：`pop` 需要用 `Box::from_raw` 把裸指针重新包装成 `Box`，这样 Rust 才能正确管理内存：
+
+```rust
+pub fn pop(&mut self) -> Option<T> {
+    unsafe {
+        if self.head.is_null() {
+            None
+        } else {
+            let head = Box::from_raw(self.head);  // *mut -> Box
+            self.head = head.next;
+            if self.head.is_null() {
+                self.tail = ptr::null_mut();
+            }
+            Some(head.elem)
+        }
+    }
+}
+```
+
+> **译注**：`Box::into_raw` 和 `Box::from_raw` 是一对逆操作。`into_raw` 交出所有权但不释放内存；`from_raw` 重新获得所有权，当 `Box` 离开作用域时会正常 drop。这种“所有权在 Box 和裸指针之间转移”的技巧是 unsafe 链表的核心。
+
+---
+
 ## 用 `Box::into_raw` 分配节点
 
 不再用 `Box` 作为链表的一部分，但我们仍希望用 Rust 的内存分配器。标准库提供了一对非常合适的工具：
@@ -267,6 +339,8 @@ pub fn pop(&mut self) -> Option<T> {
 ```
 
 注意最后重置 `tail` 的逻辑。如果链表被弹空了，`head` 会变成空指针，此时 `tail` 也必须同步为空。否则 `tail` 会指向一个已经被释放的节点，形成**悬空指针（dangling pointer）**。
+
+> **unsafe taint（unsafe 污染）**：一旦模块里用了 unsafe，整个模块的代码都必须正确维护不变量，否则 safe 代码也会崩溃。`pop` 本身不需要 unsafe（操作的是 head），但当链表被弹空时，必须把 `tail` 也置为 null——如果忘记这一步，下次 `push` 会往一个已经释放的地址写入，造成 use-after-free。
 
 ```rust
 impl<T> Drop for List<T> {
@@ -356,6 +430,47 @@ impl<'a, T> Iterator for IterMut<'a, T> {
 
 ---
 
+## 测试
+
+```rust
+#[cfg(test)]
+mod test {
+    use super::List;
+
+    #[test]
+    fn basics() {
+        let mut list = List::new();
+        assert_eq!(list.pop(), None);
+
+        list.push(1);
+        list.push(2);
+        list.push(3);
+
+        assert_eq!(list.pop(), Some(1));
+        assert_eq!(list.pop(), Some(2));
+
+        list.push(4);
+        list.push(5);
+
+        assert_eq!(list.pop(), Some(3));
+        assert_eq!(list.pop(), Some(4));
+        assert_eq!(list.pop(), Some(5));
+        assert_eq!(list.pop(), None);
+
+        // 检查空链表后重新 push 是否正常
+        list.push(6);
+        list.push(7);
+        assert_eq!(list.pop(), Some(6));
+        assert_eq!(list.pop(), Some(7));
+        assert_eq!(list.pop(), None);
+    }
+}
+```
+
+> **译注**：原教程还包含 `into_iter` / `iter` / `iter_mut` 的测试以及一个 `miri_food` 测试，专门用来在 Miri 下验证各种边界操作。如果你打算修改这段代码，强烈建议安装 Miri 并运行 `cargo +nightly miri test`。
+
+---
+
 ## 进一步：`NonNull<T>` 的展望
 
 `NonNull<T>` 是标准库对 `*mut T` 的一层薄包装，它的核心优势包括：
@@ -364,7 +479,7 @@ impl<'a, T> Iterator for IterMut<'a, T> {
 2. **型变（Covariance）**：`NonNull<T>` 对 `T` 是协变的，而裸指针 `*mut T` 对 `T` 是不变的。这对泛型集合非常重要——它允许 `NonNull<Cat>` 在合适的地方当作 `NonNull<Animal>` 使用。
 3. **空指针优化**：`Option<NonNull<T>>` 与 `NonNull<T>` 大小相同（都等于 `*mut T` 的大小），编译器用 null 值表示 `None`。
 
-> **本章注**：`NonNull` 是**第六章**才正式引入并作为主线实现的数据结构工具；本章的完整实现仍采用裸指针 `*mut Node<T>`，以保证读者先理解 unsafe 与裸指针本身。本章提到的 `Option<NonNull<Node<T>>>` 仅作为理论展望：它可以用更类型化的方式表达 `Link`——空指针用 `None` 表示，非空指针保证指向有效内存，需要时再通过 `NonNull::as_ptr` 取回裸指针进行 `unsafe` 操作。例如：
+> **本章注**：`NonNull` 是**下一章**才正式引入并作为主线实现的数据结构工具；本章的完整实现仍采用裸指针 `*mut Node<T>`，以保证读者先理解 unsafe 与裸指针本身。本章提到的 `Option<NonNull<Node<T>>>` 仅作为理论展望：它可以用更类型化的方式表达 `Link`——空指针用 `None` 表示，非空指针保证指向有效内存，需要时再通过 `NonNull::as_ptr` 取回裸指针进行 `unsafe` 操作。例如：
 >
 > ```rust
 > use std::ptr::NonNull;
@@ -372,7 +487,7 @@ impl<'a, T> Iterator for IterMut<'a, T> {
 > type Link<T> = Option<NonNull<Node<T>>>;
 > ```
 >
-> 这一改造会改变本章主线的类型签名，因此留待第六章统一展开。
+> 这一改造会改变本章主线的类型签名，因此留待下一章统一展开。
 
 ---
 
@@ -552,81 +667,6 @@ impl<'a, T> Iterator for IterMut<'a, T> {
 }
 ```
 
-### 测试要点
-
-```rust
-#[cfg(test)]
-mod test {
-    use super::List;
-
-    #[test]
-    fn basics() {
-        let mut list = List::new();
-        assert_eq!(list.pop(), None);
-
-        list.push(1);
-        list.push(2);
-        list.push(3);
-
-        assert_eq!(list.pop(), Some(1));
-        assert_eq!(list.pop(), Some(2));
-
-        list.push(4);
-        list.push(5);
-
-        assert_eq!(list.pop(), Some(3));
-        assert_eq!(list.pop(), Some(4));
-        assert_eq!(list.pop(), Some(5));
-        assert_eq!(list.pop(), None);
-
-        // 检查弹空后 tail 是否正确重置
-        list.push(6);
-        list.push(7);
-        assert_eq!(list.pop(), Some(6));
-        assert_eq!(list.pop(), Some(7));
-        assert_eq!(list.pop(), None);
-    }
-
-    #[test]
-    fn miri_food() {
-        let mut list = List::new();
-        list.push(1);
-        list.push(2);
-        list.push(3);
-
-        assert!(list.pop() == Some(1));
-        list.push(4);
-        assert!(list.pop() == Some(2));
-        list.push(5);
-
-        assert!(list.peek() == Some(&3));
-        list.push(6);
-        list.peek_mut().map(|x| *x *= 10);
-        assert!(list.peek() == Some(&30));
-        assert!(list.pop() == Some(30));
-
-        for elem in list.iter_mut() {
-            *elem *= 100;
-        }
-
-        let mut iter = list.iter();
-        assert_eq!(iter.next(), Some(&400));
-        assert_eq!(iter.next(), Some(&500));
-        assert_eq!(iter.next(), Some(&600));
-        assert_eq!(iter.next(), None);
-        assert_eq!(iter.next(), None);
-
-        assert!(list.pop() == Some(400));
-        list.peek_mut().map(|x| *x *= 10);
-        assert!(list.peek() == Some(&5000));
-        list.push(7);
-        // Drop it on the ground and let the dtor exercise itself
-    }
-}
-```
-
-运行 `cargo test` 和 `MIRIFLAGS="-Zmiri-tag-raw-pointers" cargo miri test` 都应通过。Miri 是检测 Rust 未定义行为的有力工具，在写 Unsafe 代码时应养成习惯。
-
 ---
 
 ## 关键教训
@@ -639,11 +679,20 @@ mod test {
 - **`PhantomData`** 是控制型变、所有权和自动 trait 的零成本工具。用裸指针实现泛型结构时通常不可或缺。
 - **Miri 是 Unsafe 代码的盟友**：它能抓到很多人工审查会遗漏的别名/生命周期问题。
 
+| 主题 | 要点 |
+|------|------|
+| 裸指针 `*mut T` | 没有生命周期、不拥有数据、解引用需 unsafe |
+| `Box::into_raw` / `from_raw` | 在 `Box` 和裸指针之间转移所有权，必须成对使用 |
+| unsafe taint | 一个模块里的 unsafe 会影响整个模块，靠 privacy 隔离风险 |
+| 自引用结构 | 引用无法描述“指向自己内部”，裸指针是唯一出路 |
+| Miri | 常规测试通过不代表内存安全，Miri 能发现 Stacked Borrows 违规 |
+| 空链表处理 | `pop` 空后必须将 `tail` 置 null，否则 push 会写入 dangling 指针 |
+
 ---
 
 ## 下一章
 
-第五章将双端链表的复杂度推向极致：在双端队列（Deque）中，头尾指针相互指向，需要同时维护 `next` 和 `prev`。我们将在更复杂的场景下继续深挖 `NonNull` 和 `PhantomData` 的使用。
+第五章将构建一个**生产级的不安全双向链表（Production Unsafe Doubly-Linked Deque）**，引入 `NonNull`、panic safety、cursor API，以及 `Send`/`Sync` 的编译期验证。那是 too-many-lists 的终极挑战。
 
 ---
 

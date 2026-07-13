@@ -201,3 +201,4 @@ function main() {
 - → [引用与借用](reference-borrow.md) — RefCell 是借用规则的"运行时软版本"
 - → [并发](../concurrency/thread.md) — `Arc` 替代 `Rc` 实现线程安全共享
 - → [Trait 与泛型](../basic/trait-generic.md) — `Deref` 是一个标准 trait
+- → [自引用结构](self-referential.md) — `Box::pin` 配合 `Pin` 处理自引用 Future

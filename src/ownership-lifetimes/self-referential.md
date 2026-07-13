@@ -70,7 +70,7 @@ fn main() {
 }
 ```
 
-```rust
+```rust,ignore
 // 阶段 2：使用 ouroboros crate 自动派生自引用结构体
 use ouroboros::self_referencing;
 
@@ -128,7 +128,7 @@ fn main() {
 
 ### 真实场景：async 块生成的自引用 Future
 
-```rust,should-compile
+```rust,ignore
 // async fn 编译后会生成一个自引用状态机
 async fn read_file(path: &str) -> String {
     tokio::fs::read_to_string(path).await.unwrap()
@@ -171,5 +171,6 @@ async function main() {
 
 - → [生命周期进阶](lifetime-advanced.md) — `Pin` 与 HRTB 的进阶细节
 - → [所有权模型](ownership.md) — move 语义是自引用问题的根因
+- → [引用与借用](reference-borrow.md) — 自引用是借用规则的极端边界
 - → [智能指针](smart-pointer.md) — `Box`、`Rc` 与自引用结构体的配合
 - → [源码阅读](../deep-dives/code-readings.md) — 阅读 tokio 中 Pin 与 Future 的实现

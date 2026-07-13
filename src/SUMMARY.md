@@ -39,12 +39,11 @@
 - [源码阅读](deep-dives/code-readings.md)
 - [参与 Rust 贡献](deep-dives/contributing-to-rust.md)
 - [Crust of Rust 笔记](deep-dives/crust-of-rust-notes.md)
-- [链表实现 · 第一章](deep-dives/linked-lists/first.md)
-- [链表实现 · 第二章](deep-dives/linked-lists/second.md)
-- [链表实现 · 第三章](deep-dives/linked-lists/third.md)
-- [链表实现 · 第四章](deep-dives/linked-lists/fourth.md)
-- [链表实现 · 第五章](deep-dives/linked-lists/fifth.md)
-- [链表实现 · 第六章](deep-dives/linked-lists/sixth.md)
+- [链表实现 · 第一章 · 朴素栈](deep-dives/linked-lists/first.md)
+- [链表实现 · 第二章 · 可变栈](deep-dives/linked-lists/second.md)
+- [链表实现 · 第三章 · 持久化栈](deep-dives/linked-lists/third.md)
+- [链表实现 · 第四章 · 不安全单链表队列](deep-dives/linked-lists/fourth.md)
+- [链表实现 · 第五章 · 生产级双向队列](deep-dives/linked-lists/sixth.md)
 
 # 编译错误实战
 
@@ -57,6 +56,3 @@
 - [内存布局](profiling/memory-layout.md)
 - [性能调优](profiling/perf-tuning.md)
 
-# v1.1 计划（尚未撰写）
-
-> 以下章节计划后续翻译。

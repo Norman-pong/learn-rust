@@ -21,10 +21,8 @@
 
 ### `Cargo.toml` 结构
 
-```rust
-// 这不是 Rust 代码，仅用于展示 TOML 结构；
-// 在真实的 Cargo.toml 中不能有 Rust 语法注释。
-/*
+```toml
+# Cargo.toml — TOML 格式，用 # 做注释
 [package]
 name = "rusty-app"
 version = "0.1.0"
@@ -40,7 +38,6 @@ anyhow = "1.0"
 
 [dev-dependencies]
 reqwest = "0.12"
-*/
 ```
 
 ```typescript
@@ -106,9 +103,8 @@ pnpm publish
 
 ### 依赖版本与 features
 
-```rust
-// Cargo.toml 片段
-/*
+```toml
+# Cargo.toml 片段
 [dependencies]
 serde = "1.0"                         # 等价于 >=1.0.0, <2.0.0
 serde_json = "=1.0.117"               # 精确锁定
@@ -116,10 +112,9 @@ regex = ">=1.10, <2.0"
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 
 [features]
-default = ["std"]
 std = []
+default = ["std"]
 async = ["tokio"]
-*/
 ```
 
 ```typescript

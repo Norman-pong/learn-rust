@@ -58,9 +58,44 @@ let r3 = &mut s;  // ✅ NLL：r1/r2 已不再使用，可以创建可变借用
 r3.push_str(", world");
 ```
 
-### 悬垂引用的预防
+### 重新借用（Reborrow）：从 `&mut T` 临时再借
 
 ```rust
+let mut s = String::from("hello");
+let r = &mut s;       // 可变借用
+
+// reborrow：从 r 临时再借一个不可变引用
+let r2: &String = &*r; // *r 解引用出 String，& 再取不可变引用
+println!("{r2}");       // r2 使用完毕
+r.push_str(" world");   // ✅ r2 已不再使用，r 恢复可变访问
+```
+
+reborrow 是实战中最频繁的模式。函数接受 `&mut T` 后，内部调用只需要 `&T` 的方法时，编译器自动插入 reborrow：
+
+```rust
+fn len(s: &String) -> usize { s.len() }
+
+let mut s = String::from("hi");
+let r = &mut s;
+let n = len(r);   // 编译器自动 reborrow: len(&*r)
+r.push_str("!");  // ✅ 上面的 reborrow 已结束
+```
+
+```typescript
+// TypeScript 没有借用概念，不需要 reborrow
+const s = { text: "hi" };
+const r = s;
+const n = r.text.length; // 直接访问，没有约束
+r.text += "!";
+```
+
+> **何时需要手动 `&*r`？** 大多数场景编译器自动推导。但把 `&mut` 传给需要 `&` 的泛型函数、或在 `unsafe` 中操作裸指针时，显式 `&*r` 能消除歧义。
+>
+> **借用拆分（Split Borrow）**：结构体的不同字段可以同时被独立借用——`&mut s.a` 和 `&mut s.b` 互不冲突，因为它们指向不同的内存区域。这是编译器借用检查的精确性保证。
+
+### 悬垂引用的预防
+
+```rust,compile_fail
 // ❌ 编译错误：返回局部变量的引用
 fn dangle() -> &String {
     let s = String::from("hello");
@@ -81,3 +116,4 @@ fn dangle() -> &String {
 - → [所有权模型](ownership.md) — 借用是暂时转移使用权而非所有权
 - → [生命周期基础](lifetime-basic.md) — 借用与生命周期标注的关系
 - → [智能指针](smart-pointer.md) — 当借用规则不够灵活时，用 Rc/RefCell
+- → [自引用结构](self-referential.md) — 结构体内字段引用自身是借用的极端边界

@@ -149,16 +149,10 @@ fn main() {
     println!("result: {result}"); // 20
 
     // while let 循环解构迭代器
-    let mut iter = SomeVec.iter();
+    let nums = vec![1, 2, 3];
+    let mut iter = nums.iter();
     while let Some(v) = iter.next() {
         println!("{v}");
-    }
-}
-
-struct SomeVec;
-impl SomeVec {
-    fn iter(&self) -> impl Iterator<Item = i32> {
-        std::iter::repeat(0).take(0)
     }
 }
 ```

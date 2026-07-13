@@ -44,7 +44,7 @@ import { readFileSync } from "node:fs";
 
 function readFile(path: string): string {
     try {
-        const content = readFileSync(path, "utf-8");
+        return readFileSync(path, "utf-8");
     } catch (e) {
         throw new Error(`Failed to read ${path}: ${String(e)}`);
     }
@@ -170,6 +170,45 @@ function main() {
     }
 }
 ```
+
+### 手写 `From` trait：让 `?` 自动转换
+
+`?` 运算符的自动类型转换依赖 `From` trait。`thiserror` 的 `#[from]` 会自动生成，不用 `thiserror` 时需要手写：
+
+```rust
+use std::num::ParseIntError;
+
+#[derive(Debug)]
+enum AppError {
+    Io(std::io::Error),
+    Parse(ParseIntError),
+}
+
+// 手写 From，让 ? 能把 io::Error / ParseIntError 自动转成 AppError
+impl From<std::io::Error> for AppError {
+    fn from(e: std::io::Error) -> Self {
+        AppError::Io(e)
+    }
+}
+
+impl From<ParseIntError> for AppError {
+    fn from(e: ParseIntError) -> Self {
+        AppError::Parse(e)
+    }
+}
+
+fn load() -> Result<i32, AppError> {
+    let content = std::fs::read_to_string("config.toml")?; // io::Error → AppError
+    let val: i32 = content.trim().parse()?;                 // ParseIntError → AppError
+    Ok(val)
+}
+```
+
+```typescript
+// TypeScript 没有等价机制——每个 catch 块需要手动包装错误
+```
+
+> **等价关系**：`thiserror` 的 `#[from]` = 手写 `impl From<XxxError> for AppError`。两者效果完全相同，`#[from]` 只是省了样板代码。
 
 ### `anyhow` — 应用层动态错误
 

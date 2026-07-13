@@ -155,6 +155,44 @@ function main() {
 }
 ```
 
+### 返回闭包
+
+闭包类型是不透明的匿名类型（编译器生成的结构体），无法直接写出类型签名。返回闭包有两种方式：
+
+```rust
+// 方式一：impl Trait（静态分发，零开销，最常用）
+fn make_adder(n: i32) -> impl Fn(i32) -> i32 {
+    move |x| x + n  // move 把 n 的所有权移入闭包
+}
+
+// 方式二：Box<dyn Fn>（动态分发，有堆分配开销，用于需要在集合中存放异构闭包）
+fn make_adder_boxed(n: i32) -> Box<dyn Fn(i32) -> i32> {
+    Box::new(move |x| x + n)
+}
+
+fn main() {
+    let add5 = make_adder(5);
+    println!("{}", add5(3)); // 8
+
+    let add10 = make_adder_boxed(10);
+    println!("{}", add10(3)); // 13
+}
+```
+
+```typescript
+// TypeScript 闭包类型可显式写出，返回闭包没有特殊语法
+function makeAdder(n: number): (x: number) => number {
+    return (x) => x + n;
+}
+
+const add5 = makeAdder(5);
+console.log(add5(3)); // 8
+```
+
+> **为什么需要 `move`？** 不加 `move` 时闭包默认借用 `n`，函数返回时 `n` 所在栈帧被回收，闭包持有的引用变成悬垂引用。`move` 把 `n`（`i32` 是 `Copy`，实际复制）的所有权移入闭包，闭包自洽。
+>
+> **`impl Fn` vs `Box<dyn Fn>` 选择**：单一闭包类型用 `impl Fn`（零开销）；需要在 `Vec` 或 trait object 中存多种不同闭包时用 `Box<dyn Fn>`。
+
 ### 闭包 vs 函数指针
 
 ```rust

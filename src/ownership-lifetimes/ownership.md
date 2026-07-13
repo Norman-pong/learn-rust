@@ -158,7 +158,7 @@ function givesOwnership(): string {
 ## 容易踩的坑
 
 1. **赋值后继续使用原变量**——`let s2 = s1; println!("{s1}");` 对非 Copy 类型会编译失败，这是 Move 不是 Copy。
-2. **`Copy` 与 `Clone` 混淆**——`Copy` 是隐式按位复制，`Clone` 是显式深拷贝；`#[derive(Copy, Clone)]` 的顺序不能反，且 `Drop` 与 `Copy` 互斥。
+2. **`Copy` 与 `Clone` 混淆**——`Copy` 是隐式按位复制，`Clone` 是显式深拷贝；实现 `Copy` 必须同时实现 `Clone`（惯用 `#[derive(Copy, Clone)]`），且 `Drop` 与 `Copy` 互斥。
 3. **在循环里 move 值**——`for item in vec { ... }` 会消耗 Vec，如果需要保留，应使用 `&vec` 或 `vec.iter()`。
 4. **函数返回所有权**——`fn f(s: String) -> String` 把所有权返回给调用者，调用者必须接住，否则编译器会警告未使用的返回值。
 5. **Move 与 `Rc`/`Arc` 的选择**——多所有者场景不要硬拼 `clone()`，应使用 `Rc`（单线程）或 `Arc`（多线程）共享所有权。
