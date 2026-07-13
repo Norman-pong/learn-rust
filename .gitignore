@@ -28,3 +28,6 @@ clippy
 conversions
 enums
 error_handling
+
+# omp / sdd-pack runtime cache
+.sdd/
